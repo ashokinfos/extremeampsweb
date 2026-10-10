@@ -7,13 +7,14 @@ on:
       - develop
 
 env:
-  APP_DIR: /var/www/extremeamps-staging
+  APP_DIR: /var/www/myapps/staging/extremeamps
   ENV_FILE: .env.staging
 
 jobs:
   build-and-deploy:
     name: Build & Deploy (Staging)
     runs-on: ubuntu-latest
+    environment: staging
 
     steps:
       # ── 1. Source ────────────────────────────────────────────────────────────
