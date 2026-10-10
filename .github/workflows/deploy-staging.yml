@@ -28,10 +28,16 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      # ── 3. Load env vars from .env.staging into the workflow environment ─────
+      # ── 3. Write env file from GitHub secret ────────────────────────────────
+      # In GitHub: Settings → Environments → staging → Add secret
+      # Secret name: ENV_FILE
+      # Secret value: paste the full contents of your staging .env file
+      - name: Write .env.staging from secret
+        run: echo "${{ secrets.ENV_FILE }}" > ${{ env.ENV_FILE }}
+
+      # ── 3a. Load env vars into workflow environment (for build-time baking) ──
       - name: Load staging environment variables
         run: |
-          # Strip comments and blank lines, then export each KEY=VALUE pair
           grep -v '^\s*#' ${{ env.ENV_FILE }} | grep -v '^\s*$' >> $GITHUB_ENV
 
       # ── 4. Dependencies ──────────────────────────────────────────────────────
@@ -58,10 +64,10 @@ jobs:
       - name: Upload archive to staging server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.STAGING_SERVER_HOST }}
-          username: ${{ secrets.STAGING_SERVER_USERNAME }}
-          key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
-          port: ${{ secrets.STAGING_SERVER_PORT || 22 }}
+          host: ${{ secrets.CLOUD_SERVER_HOST }}
+          username: ${{ secrets.CLOUD_SERVER_USERNAME }}
+          key: ${{ secrets.CLOUD_SERVER_SSH_KEY }}
+          port: ${{ secrets.CLOUD_SERVER_PORT || 22 }}
           source: "deploy.tar.gz"
           target: "/tmp/extremeamps-staging-deploy"
 
