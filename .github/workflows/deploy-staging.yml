@@ -1,0 +1,106 @@
+name: Deploy to Staging
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+
+env:
+  APP_DIR: /var/www/extremeamps-staging
+  ENV_FILE: .env.staging
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy (Staging)
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Source ────────────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── 2. Node ──────────────────────────────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      # ── 3. Load env vars from .env.staging into the workflow environment ─────
+      - name: Load staging environment variables
+        run: |
+          # Strip comments and blank lines, then export each KEY=VALUE pair
+          grep -v '^\s*#' ${{ env.ENV_FILE }} | grep -v '^\s*$' >> $GITHUB_ENV
+
+      # ── 4. Dependencies ──────────────────────────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      # ── 5. Build ─────────────────────────────────────────────────────────────
+      - name: Build (Staging)
+        run: npm run build
+
+      # ── 6. Package artefact ──────────────────────────────────────────────────
+      - name: Create deployment archive
+        run: |
+          tar -czf deploy.tar.gz \
+            .next \
+            public \
+            package.json \
+            package-lock.json \
+            next.config.ts \
+            ecosystem.config.cjs \
+            ${{ env.ENV_FILE }}
+
+      # ── 7. Upload archive to server ──────────────────────────────────────────
+      - name: Upload archive to staging server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.STAGING_SERVER_HOST }}
+          username: ${{ secrets.STAGING_SERVER_USERNAME }}
+          key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
+          port: ${{ secrets.STAGING_SERVER_PORT || 22 }}
+          source: "deploy.tar.gz"
+          target: "/tmp/extremeamps-staging-deploy"
+
+      # ── 8. Remote: unpack, install prod deps, reload PM2 ────────────────────
+      - name: Deploy & restart on staging server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.STAGING_SERVER_HOST }}
+          username: ${{ secrets.STAGING_SERVER_USERNAME }}
+          key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
+          port: ${{ secrets.STAGING_SERVER_PORT || 22 }}
+          script: |
+            set -e
+
+            APP_DIR="${{ env.APP_DIR }}"
+
+            # Unpack artefact
+            mkdir -p "$APP_DIR"
+            tar -xzf /tmp/extremeamps-staging-deploy/deploy.tar.gz -C "$APP_DIR"
+            rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
+
+            # Place the env file where Next.js expects it
+            cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
+
+            # Install production dependencies only
+            cd "$APP_DIR"
+            npm install --omit=dev --prefer-offline
+
+            # Reload or start via PM2
+            if pm2 describe extremeamps-staging > /dev/null 2>&1; then
+              pm2 reload extremeamps-staging --update-env
+            else
+              pm2 start ecosystem.config.cjs --env production --name extremeamps-staging
+            fi
+            pm2 save
+
+      # ── 9. Local clean-up ────────────────────────────────────────────────────
+      - name: Clean up local artefacts
+        run: rm -f deploy.tar.gz
+
+      # ── 10. Summary ──────────────────────────────────────────────────────────
+      - name: Notify deployment success
+        run: echo "✅ Staging deployment successful!"
