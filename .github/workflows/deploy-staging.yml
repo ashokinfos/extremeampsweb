@@ -75,10 +75,10 @@ jobs:
       - name: Deploy & restart on staging server
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.STAGING_SERVER_HOST }}
-          username: ${{ secrets.STAGING_SERVER_USERNAME }}
-          key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
-          port: ${{ secrets.STAGING_SERVER_PORT || 22 }}
+          host: ${{ secrets.CLOUD_SERVER_HOST }}
+          username: ${{ secrets.CLOUD_SERVER_USERNAME }}
+          key: ${{ secrets.CLOUD_SERVER_SSH_KEY }}
+          port: ${{ secrets.CLOUD_SERVER_PORT || 22 }}
           script: |
             set -e
 
