@@ -48,19 +48,25 @@ jobs:
       - name: Build (Staging)
         run: npm run build
 
-      # ── 6. Package artefact ──────────────────────────────────────────────────
+      # ── 6. Install production-only node_modules on CI ───────────────────────
+      # Avoids running npm install on the server (wrong Node version / no internet)
+      - name: Install production dependencies
+        run: npm install --omit=dev
+
+      # ── 7. Package artefact ──────────────────────────────────────────────────
       - name: Create deployment archive
         run: |
           tar -czf deploy.tar.gz \
             .next \
             public \
+            node_modules \
             package.json \
             package-lock.json \
             next.config.ts \
             ecosystem.config.cjs \
             ${{ env.ENV_FILE }}
 
-      # ── 7. Upload archive to server ──────────────────────────────────────────
+      # ── 8. Upload archive to server ──────────────────────────────────────────
       - name: Upload archive to staging server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -71,7 +77,7 @@ jobs:
           source: "deploy.tar.gz"
           target: "/tmp/extremeamps-staging-deploy"
 
-      # ── 8. Remote: unpack, install prod deps, reload PM2 ────────────────────
+      # ── 9. Remote: unpack and reload PM2 ────────────────────────────────────
       - name: Deploy & restart on staging server
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -92,16 +98,12 @@ jobs:
             # Remove old .next before extracting to avoid stale files
             rm -rf "$APP_DIR/.next"
 
-            # Unpack artefact
+            # Unpack artefact (node_modules included — no npm install needed)
             tar -xzf /tmp/extremeamps-staging-deploy/deploy.tar.gz -C "$APP_DIR"
             rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
 
             # Place the env file where Next.js expects it
             cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
-
-            # Install production dependencies only
-            cd "$APP_DIR"
-            npm install --omit=dev --prefer-offline
 
             # Reload or start via PM2
             if pm2 describe extremeamps-staging > /dev/null 2>&1; then
@@ -111,10 +113,10 @@ jobs:
             fi
             pm2 save
 
-      # ── 9. Local clean-up ────────────────────────────────────────────────────
+      # ── 10. Local clean-up ───────────────────────────────────────────────────
       - name: Clean up local artefacts
         run: rm -f deploy.tar.gz
 
-      # ── 10. Summary ──────────────────────────────────────────────────────────
+      # ── 11. Summary ──────────────────────────────────────────────────────────
       - name: Notify deployment success
         run: echo "✅ Staging deployment successful!"
