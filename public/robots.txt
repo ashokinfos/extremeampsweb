@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /sign-in
+Disallow: /sign-up
+Disallow: /checkout
+Disallow: /payment/
+Disallow: /my-orders
+Disallow: /user/
+
+Sitemap: https://www.extremeamps.in/sitemap.xml
+Sitemap: https://api.extremeamps.in/api/sitemap/sitemap.xml
