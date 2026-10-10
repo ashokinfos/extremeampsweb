@@ -83,9 +83,16 @@ jobs:
             set -e
 
             APP_DIR="${{ env.APP_DIR }}"
+            DEPLOY_USER="${{ secrets.STAGING_SERVER_USERNAME }}"
+
+            # Ensure app directory exists with correct ownership
+            sudo mkdir -p "$APP_DIR"
+            sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
+
+            # Remove old .next before extracting to avoid stale files
+            rm -rf "$APP_DIR/.next"
 
             # Unpack artefact
-            mkdir -p "$APP_DIR"
             tar -xzf /tmp/extremeamps-staging-deploy/deploy.tar.gz -C "$APP_DIR"
             rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
 
