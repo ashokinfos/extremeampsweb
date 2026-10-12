@@ -110,17 +110,18 @@ jobs:
             # Place the env file where Next.js expects it
             sudo cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
 
-            # Reload or start via PM2
+            # Reload or start via PM2 (--only scopes to just this app so the
+            # production entry in the shared ecosystem file is not touched)
             if pm2 describe extremeamps-staging > /dev/null 2>&1; then
-              sudo pm2 reload extremeamps-staging --update-env
+              pm2 reload extremeamps-staging --update-env
             else
-              sudo pm2 start "$APP_DIR/ecosystem.config.cjs" --env production --name extremeamps-staging
+              pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-staging --env production
             fi
-            sudo pm2 save
+            pm2 save
 
       # ── 10. Local clean-up ───────────────────────────────────────────────────
       - name: Clean up local artefacts
-        run: sudo rm -f deploy.tar.gz
+        run: rm -f deploy.tar.gz
 
       # ── 11. Summary ──────────────────────────────────────────────────────────
       - name: Notify deployment success

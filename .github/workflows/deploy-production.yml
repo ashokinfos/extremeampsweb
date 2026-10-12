@@ -90,25 +90,33 @@ jobs:
             APP_DIR="${{ env.APP_DIR }}"
             DEPLOY_USER="${{ secrets.PRODUCTION_SERVER_USERNAME }}"
 
-            # Ensure app directory exists with correct ownership
+            # Ensure app directory exists
             sudo mkdir -p "$APP_DIR"
-            sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
 
-            # Remove old .next before extracting to avoid stale files
-            rm -rf "$APP_DIR/.next"
+            # Stop the app BEFORE touching files so Next.js releases its open
+            # handles on route-cache files (owned by the PM2 process user)
+            if pm2 describe extremeamps-production > /dev/null 2>&1; then
+              pm2 stop extremeamps-production || true
+            fi
+
+            # Now safe to remove old .next
+            sudo rm -rf "$APP_DIR/.next"
 
             # Unpack artefact (node_modules included — no npm install needed)
-            tar -xzf /tmp/extremeamps-production-deploy/deploy.tar.gz -C "$APP_DIR"
+            sudo tar -xzf /tmp/extremeamps-production-deploy/deploy.tar.gz -C "$APP_DIR"
             rm -f /tmp/extremeamps-production-deploy/deploy.tar.gz
 
-            # .env.production is already named correctly — no rename needed
-            # (the CI writes it as .env.production and the archive carries that name)
+            # Fix ownership AFTER extraction so all files are owned by deploy user
+            sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
 
-            # Reload or start via PM2
+            # .env.production is already named correctly — no rename needed
+
+            # Reload or start via PM2 (--only scopes to just this app so the
+            # staging entry in the shared ecosystem file is not touched)
             if pm2 describe extremeamps-production > /dev/null 2>&1; then
               pm2 reload extremeamps-production --update-env
             else
-              pm2 start "$APP_DIR/ecosystem.config.cjs" --env production --name extremeamps-production
+              pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-production --env production
             fi
             pm2 save
 
