@@ -91,31 +91,36 @@ jobs:
             APP_DIR="${{ env.APP_DIR }}"
             DEPLOY_USER="${{ secrets.STAGING_SERVER_USERNAME }}"
 
-            # Ensure app directory exists with correct ownership
             sudo mkdir -p "$APP_DIR"
-            sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
 
-            # Remove old .next before extracting to avoid stale files
-            rm -rf "$APP_DIR/.next"
+            if pm2 describe extremeamps-staging > /dev/null 2>&1; then
+              pm2 stop extremeamps-staging || true
+            fi
+
+            sudo rm -rf "$APP_DIR/.next"
 
             # Unpack artefact (node_modules included — no npm install needed)
-            tar -xzf /tmp/extremeamps-staging-deploy/deploy.tar.gz -C "$APP_DIR"
-            rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
+            sudo tar -xzf /tmp/extremeamps-staging-deploy/deploy.tar.gz -C "$APP_DIR"
+            sudo rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
+
+            # Fix ownership of everything AFTER extraction so all files
+            # (including newly unpacked ones) are owned by the deploy user
+            sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
 
             # Place the env file where Next.js expects it
-            cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
+            sudo cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
 
             # Reload or start via PM2
             if pm2 describe extremeamps-staging > /dev/null 2>&1; then
-              pm2 reload extremeamps-staging --update-env
+              sudo pm2 reload extremeamps-staging --update-env
             else
-              pm2 start ecosystem.config.cjs --env production --name extremeamps-staging
+              sudo pm2 start "$APP_DIR/ecosystem.config.cjs" --env production --name extremeamps-staging
             fi
-            pm2 save
+            sudo pm2 save
 
       # ── 10. Local clean-up ───────────────────────────────────────────────────
       - name: Clean up local artefacts
-        run: rm -f deploy.tar.gz
+        run: sudo rm -f deploy.tar.gz
 
       # ── 11. Summary ──────────────────────────────────────────────────────────
       - name: Notify deployment success
