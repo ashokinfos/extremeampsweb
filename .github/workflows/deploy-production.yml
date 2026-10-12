@@ -28,27 +28,16 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      # ── 3. Write env file from GitHub secret ────────────────────────────────
-      # In GitHub: Settings → Environments → production → Add secret
-      # Secret name: ENV_FILE
-      # Secret value: paste the full contents of your production .env file
-      - name: Write .env.production from secret
-        run: echo "${{ secrets.ENV_FILE }}" > ${{ env.ENV_FILE }}
-
-      # ── 3a. Load env vars into workflow environment (for build-time baking) ──
-      - name: Load production environment variables
-        run: |
-          grep -v '^\s*#' ${{ env.ENV_FILE }} | grep -v '^\s*$' >> $GITHUB_ENV
-
-      # ── 4. Dependencies ──────────────────────────────────────────────────────
+      # ── 3. Dependencies ──────────────────────────────────────────────────────
       - name: Install dependencies
         run: npm ci
 
-      # ── 5. Build ─────────────────────────────────────────────────────────────
+      # ── 4. Build ─────────────────────────────────────────────────────────────
       - name: Build (Production)
         run: npm run build
 
-      # ── 6. Install production-only node_modules on CI ───────────────────────
+      # ── 5. Install production-only node_modules on CI ───────────────────────
+      # Avoids running npm install on the server (wrong Node version / no internet)
       - name: Install production dependencies
         run: npm install --omit=dev
 
@@ -90,29 +79,27 @@ jobs:
             APP_DIR="${{ env.APP_DIR }}"
             DEPLOY_USER="${{ secrets.PRODUCTION_SERVER_USERNAME }}"
 
-            # Ensure app directory exists
             sudo mkdir -p "$APP_DIR"
 
-            # Stop the app BEFORE touching files so Next.js releases its open
-            # handles on route-cache files (owned by the PM2 process user)
+            # Stop before touching files so Next.js releases route-cache handles
             if pm2 describe extremeamps-production > /dev/null 2>&1; then
               pm2 stop extremeamps-production || true
             fi
 
-            # Now safe to remove old .next
+            # sudo required — runtime cache files are owned by the PM2 process user
             sudo rm -rf "$APP_DIR/.next"
 
             # Unpack artefact (node_modules included — no npm install needed)
             sudo tar -xzf /tmp/extremeamps-production-deploy/deploy.tar.gz -C "$APP_DIR"
             rm -f /tmp/extremeamps-production-deploy/deploy.tar.gz
 
-            # Fix ownership AFTER extraction so all files are owned by deploy user
+            # Fix ownership AFTER extraction so all unpacked files are accessible
             sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
 
             # .env.production is already named correctly — no rename needed
 
-            # Reload or start via PM2 (--only scopes to just this app so the
-            # staging entry in the shared ecosystem file is not touched)
+            # Reload or start via PM2
+            # --only ensures only the production app is started from the shared ecosystem file
             if pm2 describe extremeamps-production > /dev/null 2>&1; then
               pm2 reload extremeamps-production --update-env
             else

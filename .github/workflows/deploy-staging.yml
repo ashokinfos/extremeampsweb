@@ -28,32 +28,20 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      # ── 3. Write env file from GitHub secret ────────────────────────────────
-      # In GitHub: Settings → Environments → staging → Add secret
-      # Secret name: ENV_FILE
-      # Secret value: paste the full contents of your staging .env file
-      - name: Write .env.staging from secret
-        run: echo "${{ secrets.ENV_FILE }}" > ${{ env.ENV_FILE }}
-
-      # ── 3a. Load env vars into workflow environment (for build-time baking) ──
-      - name: Load staging environment variables
-        run: |
-          grep -v '^\s*#' ${{ env.ENV_FILE }} | grep -v '^\s*$' >> $GITHUB_ENV
-
-      # ── 4. Dependencies ──────────────────────────────────────────────────────
+      # ── 3. Dependencies ──────────────────────────────────────────────────────
       - name: Install dependencies
         run: npm ci
 
-      # ── 5. Build ─────────────────────────────────────────────────────────────
+      # ── 4. Build ─────────────────────────────────────────────────────────────
       - name: Build (Staging)
         run: npm run build
 
-      # ── 6. Install production-only node_modules on CI ───────────────────────
+      # ── 5. Install production-only node_modules on CI ───────────────────────
       # Avoids running npm install on the server (wrong Node version / no internet)
       - name: Install production dependencies
         run: npm install --omit=dev
 
-      # ── 7. Package artefact ──────────────────────────────────────────────────
+      # ── 6. Package artefact ──────────────────────────────────────────────────
       - name: Create deployment archive
         run: |
           tar -czf deploy.tar.gz \
@@ -66,7 +54,7 @@ jobs:
             ecosystem.config.cjs \
             ${{ env.ENV_FILE }}
 
-      # ── 8. Upload archive to server ──────────────────────────────────────────
+      # ── 7. Upload archive to server ──────────────────────────────────────────
       - name: Upload archive to staging server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -77,7 +65,7 @@ jobs:
           source: "deploy.tar.gz"
           target: "/tmp/extremeamps-staging-deploy"
 
-      # ── 9. Remote: unpack and reload PM2 ────────────────────────────────────
+      # ── 8. Remote: unpack and reload PM2 ────────────────────────────────────
       - name: Deploy & restart on staging server
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -93,25 +81,26 @@ jobs:
 
             sudo mkdir -p "$APP_DIR"
 
+            # Stop before touching files so Next.js releases route-cache handles
             if pm2 describe extremeamps-staging > /dev/null 2>&1; then
               pm2 stop extremeamps-staging || true
             fi
 
+            # sudo required — runtime cache files are owned by the PM2 process user
             sudo rm -rf "$APP_DIR/.next"
 
             # Unpack artefact (node_modules included — no npm install needed)
             sudo tar -xzf /tmp/extremeamps-staging-deploy/deploy.tar.gz -C "$APP_DIR"
-            sudo rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
+            rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
 
-            # Fix ownership of everything AFTER extraction so all files
-            # (including newly unpacked ones) are owned by the deploy user
+            # Fix ownership AFTER extraction so all unpacked files are accessible
             sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
 
             # Place the env file where Next.js expects it
-            sudo cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
+            cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
 
-            # Reload or start via PM2 (--only scopes to just this app so the
-            # production entry in the shared ecosystem file is not touched)
+            # Reload or start via PM2
+            # --only ensures only the staging app is started from the shared ecosystem file
             if pm2 describe extremeamps-staging > /dev/null 2>&1; then
               pm2 reload extremeamps-staging --update-env
             else
@@ -119,10 +108,10 @@ jobs:
             fi
             pm2 save
 
-      # ── 10. Local clean-up ───────────────────────────────────────────────────
+      # ── 9. Local clean-up ───────────────────────────────────────────────────
       - name: Clean up local artefacts
         run: rm -f deploy.tar.gz
 
-      # ── 11. Summary ──────────────────────────────────────────────────────────
+      # ── 10. Summary ──────────────────────────────────────────────────────────
       - name: Notify deployment success
         run: echo "✅ Staging deployment successful!"
