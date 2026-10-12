@@ -34,7 +34,7 @@ module.exports = {
       max_memory_restart: '1G',
       env_production: {
         NODE_ENV: 'production',
-        PORT: process.env.PORT || 6000,
+        PORT: process.env.PORT || 8000,
         NEXT_PUBLIC_API_BASE_URL:
           process.env.NEXT_PUBLIC_API_BASE_URL ||
           'https://staging-api.ecom.gennestlabs.com',
@@ -59,7 +59,7 @@ module.exports = {
       max_memory_restart: '1G',
       env_production: {
         NODE_ENV: 'production',
-        PORT: process.env.PORT || 6000,
+        PORT: process.env.PORT || 8000,
         NEXT_PUBLIC_API_BASE_URL:
           process.env.NEXT_PUBLIC_API_BASE_URL ||
           'https://api.ecom.gennestlabs.com',
