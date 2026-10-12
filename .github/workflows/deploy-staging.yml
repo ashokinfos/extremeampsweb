@@ -52,6 +52,7 @@ jobs:
             package-lock.json \
             next.config.ts \
             ecosystem.config.cjs \
+            nginx-nextjs.conf \
             ${{ env.ENV_FILE }}
 
       # ── 7. Upload archive to server ──────────────────────────────────────────
@@ -98,6 +99,11 @@ jobs:
 
             # Place the env file where Next.js expects it
             cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
+
+            # Deploy nginx config and reload (only if config is valid)
+            sudo cp "$APP_DIR/nginx-nextjs.conf" /etc/nginx/sites-available/extremeamps-uat
+            sudo ln -sf /etc/nginx/sites-available/extremeamps-uat /etc/nginx/sites-enabled/extremeamps-uat
+            sudo nginx -t && sudo systemctl reload nginx
 
             # Reload or start via PM2
             # --only ensures only the staging app is started from the shared ecosystem file

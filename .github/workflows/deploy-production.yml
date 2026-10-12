@@ -41,7 +41,7 @@ jobs:
       - name: Install production dependencies
         run: npm install --omit=dev
 
-      # ── 7. Package artefact ──────────────────────────────────────────────────
+      # ── 6. Package artefact ──────────────────────────────────────────────────
       - name: Create deployment archive
         run: |
           tar -czf deploy.tar.gz \
@@ -52,6 +52,7 @@ jobs:
             package-lock.json \
             next.config.ts \
             ecosystem.config.cjs \
+            nginx-nextjs.conf \
             ${{ env.ENV_FILE }}
 
       # ── 8. Upload archive to server ──────────────────────────────────────────
@@ -97,6 +98,11 @@ jobs:
             sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
 
             # .env.production is already named correctly — no rename needed
+
+            # Deploy nginx config and reload (only if config is valid)
+            sudo cp "$APP_DIR/nginx-nextjs.conf" /etc/nginx/sites-available/extremeamps
+            sudo ln -sf /etc/nginx/sites-available/extremeamps /etc/nginx/sites-enabled/extremeamps
+            sudo nginx -t && sudo systemctl reload nginx
 
             # Reload or start via PM2
             # --only ensures only the production app is started from the shared ecosystem file
