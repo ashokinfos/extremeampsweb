@@ -11,7 +11,7 @@ import type { IApiToken } from '../types/CommonTypes';
 
 // Base configuration for Axios
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000', // Set your base URL
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   timeout: 60000, // Request timeout in milliseconds
 });
 

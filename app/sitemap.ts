@@ -1,8 +1,12 @@
 import type { MetadataRoute } from 'next';
 import { toProductSlug } from '@/shared/utils/productSlug';
 
-const API_BASE = process.env.API_BASE_URL ?? 'https://www.gennest.in/ecomapp/api';
+const API_BASE = process.env.API_BASE_URL;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.extremeamps.in';
+
+if (!API_BASE) {
+  throw new Error('API_BASE_URL environment variable is not set');
+}
 
 async function fetchAllVariants(): Promise<any[]> {
   try {

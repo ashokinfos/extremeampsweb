@@ -92,13 +92,13 @@ jobs:
 
             # Unpack artefact (node_modules included — no npm install needed)
             sudo tar -xzf /tmp/extremeamps-staging-deploy/deploy.tar.gz -C "$APP_DIR"
-            rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
+            sudo rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
 
             # Fix ownership AFTER extraction so all unpacked files are accessible
             sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
 
             # Place the env file where Next.js expects it
-            cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
+            sudo cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
 
             # Deploy nginx config and reload (only if config is valid)
             sudo cp "$APP_DIR/nginx-nextjs.conf" /etc/nginx/sites-available/extremeamps-uat
@@ -110,7 +110,7 @@ jobs:
             if pm2 describe extremeamps-staging > /dev/null 2>&1; then
               pm2 reload extremeamps-staging --update-env
             else
-              pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-staging --env production
+              pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-staging --env deploy
             fi
             pm2 save
 

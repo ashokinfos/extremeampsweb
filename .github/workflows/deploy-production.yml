@@ -109,7 +109,7 @@ jobs:
             if pm2 describe extremeamps-production > /dev/null 2>&1; then
               pm2 reload extremeamps-production --update-env
             else
-              pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-production --env production
+              pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-production --env deploy
             fi
             pm2 save
 

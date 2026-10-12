@@ -3,15 +3,15 @@
  *
  * Supports two environments driven by the CI/CD pipeline:
  *
- *   Staging:    pm2 start ecosystem.config.cjs --env production --name extremeamps-staging
+ *   Staging:    pm2 start ecosystem.config.cjs --only extremeamps-staging --env deploy
  *               Triggered by deploy-staging.yml on pushes to `develop`
  *
- *   Production: pm2 start ecosystem.config.cjs --env production --name extremeamps-production
+ *   Production: pm2 start ecosystem.config.cjs --only extremeamps-production --env deploy
  *               Triggered by deploy-production.yml on pushes to `main`
  *
- * The CI workflow copies the correct .env.staging / .env.production file to
- * $APP_DIR/.env.production before reloading PM2, so process.env is already
- * populated when these values are read at start/reload time.
+ * "--env deploy" activates the env_deploy block in each app's config.
+ * PM2 requires an env_ prefix on blocks; "deploy" is used here instead of
+ * "production" to avoid confusion — it just means "use the deployed config".
  */
 
 const STAGING_APP_DIR =
@@ -32,7 +32,7 @@ module.exports = {
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
-      env_production: {
+      env_deploy: {
         NODE_ENV: 'production',
         PORT: process.env.PORT || 8000,
         NEXT_PUBLIC_API_BASE_URL:
@@ -57,7 +57,7 @@ module.exports = {
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
-      env_production: {
+      env_deploy: {
         NODE_ENV: 'production',
         PORT: process.env.PORT || 8000,
         NEXT_PUBLIC_API_BASE_URL:
