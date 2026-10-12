@@ -1,0 +1,121 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  APP_DIR: /var/www/myapps/production/extremeamps
+  ENV_FILE: .env.production
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy (Production)
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      # ── 1. Source ────────────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── 2. Node ──────────────────────────────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      # ── 3. Write env file from GitHub secret ────────────────────────────────
+      # In GitHub: Settings → Environments → production → Add secret
+      # Secret name: ENV_FILE
+      # Secret value: paste the full contents of your production .env file
+      - name: Write .env.production from secret
+        run: echo "${{ secrets.ENV_FILE }}" > ${{ env.ENV_FILE }}
+
+      # ── 3a. Load env vars into workflow environment (for build-time baking) ──
+      - name: Load production environment variables
+        run: |
+          grep -v '^\s*#' ${{ env.ENV_FILE }} | grep -v '^\s*$' >> $GITHUB_ENV
+
+      # ── 4. Dependencies ──────────────────────────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      # ── 5. Build ─────────────────────────────────────────────────────────────
+      - name: Build (Production)
+        run: npm run build
+
+      # ── 6. Install production-only node_modules on CI ───────────────────────
+      - name: Install production dependencies
+        run: npm install --omit=dev
+
+      # ── 7. Package artefact ──────────────────────────────────────────────────
+      - name: Create deployment archive
+        run: |
+          tar -czf deploy.tar.gz \
+            .next \
+            public \
+            node_modules \
+            package.json \
+            package-lock.json \
+            next.config.ts \
+            ecosystem.config.cjs \
+            ${{ env.ENV_FILE }}
+
+      # ── 8. Upload archive to server ──────────────────────────────────────────
+      - name: Upload archive to production server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.CLOUD_SERVER_HOST }}
+          username: ${{ secrets.CLOUD_SERVER_USERNAME }}
+          key: ${{ secrets.CLOUD_SERVER_SSH_KEY }}
+          port: ${{ secrets.CLOUD_SERVER_PORT || 22 }}
+          source: "deploy.tar.gz"
+          target: "/tmp/extremeamps-production-deploy"
+
+      # ── 9. Remote: unpack and reload PM2 ────────────────────────────────────
+      - name: Deploy & restart on production server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.CLOUD_SERVER_HOST }}
+          username: ${{ secrets.CLOUD_SERVER_USERNAME }}
+          key: ${{ secrets.CLOUD_SERVER_SSH_KEY }}
+          port: ${{ secrets.CLOUD_SERVER_PORT || 22 }}
+          script: |
+            set -e
+
+            APP_DIR="${{ env.APP_DIR }}"
+            DEPLOY_USER="${{ secrets.PRODUCTION_SERVER_USERNAME }}"
+
+            # Ensure app directory exists with correct ownership
+            sudo mkdir -p "$APP_DIR"
+            sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
+
+            # Remove old .next before extracting to avoid stale files
+            rm -rf "$APP_DIR/.next"
+
+            # Unpack artefact (node_modules included — no npm install needed)
+            tar -xzf /tmp/extremeamps-production-deploy/deploy.tar.gz -C "$APP_DIR"
+            rm -f /tmp/extremeamps-production-deploy/deploy.tar.gz
+
+            # .env.production is already named correctly — no rename needed
+            # (the CI writes it as .env.production and the archive carries that name)
+
+            # Reload or start via PM2
+            if pm2 describe extremeamps-production > /dev/null 2>&1; then
+              pm2 reload extremeamps-production --update-env
+            else
+              pm2 start "$APP_DIR/ecosystem.config.cjs" --env production --name extremeamps-production
+            fi
+            pm2 save
+
+      # ── 10. Local clean-up ───────────────────────────────────────────────────
+      - name: Clean up local artefacts
+        run: rm -f deploy.tar.gz
+
+      # ── 11. Summary ──────────────────────────────────────────────────────────
+      - name: Notify deployment success
+        run: echo "✅ Production deployment successful!"
