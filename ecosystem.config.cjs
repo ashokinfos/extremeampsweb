@@ -32,8 +32,8 @@ module.exports = {
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
-      env_deploy: {
-        NODE_ENV: 'production',
+      env_staging: {
+        NODE_ENV: 'staging',
         PORT: process.env.PORT || 8000,
         NEXT_PUBLIC_API_BASE_URL:
           process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -57,16 +57,16 @@ module.exports = {
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
-      env_deploy: {
+      env_production: {
         NODE_ENV: 'production',
         PORT: process.env.PORT || 8000,
         NEXT_PUBLIC_API_BASE_URL:
           process.env.NEXT_PUBLIC_API_BASE_URL ||
-          'https://staging-api.ecom.gennestlabs.com',
+          'https://api.ecom.gennestlabs.com',
         API_BASE_URL:
-          process.env.API_BASE_URL || 'https://staging-api.ecom.gennestlabs.com',
+          process.env.API_BASE_URL || 'https://api.ecom.gennestlabs.com',
         NEXT_PUBLIC_SITE_URL:
-          process.env.NEXT_PUBLIC_SITE_URL || 'https://uat.extremeamps.in',
+          process.env.NEXT_PUBLIC_SITE_URL || 'https://www.extremeamps.in',
       },
     },
   ],

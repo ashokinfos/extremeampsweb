@@ -84,7 +84,7 @@ jobs:
 
             # Stop before touching files so Next.js releases route-cache handles
             if pm2 describe extremeamps-staging > /dev/null 2>&1; then
-              pm2 stop extremeamps-staging || true
+              sudo pm2 stop extremeamps-staging || true
             fi
 
             # sudo required — runtime cache files are owned by the PM2 process user
@@ -97,9 +97,6 @@ jobs:
             # Fix ownership AFTER extraction so all unpacked files are accessible
             sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
 
-            # Place the env file where Next.js expects it
-            sudo cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
-
             # Deploy nginx config and reload (only if config is valid)
             sudo cp "$APP_DIR/nginx-nextjs.conf" /etc/nginx/sites-available/extremeamps-uat
             sudo ln -sf /etc/nginx/sites-available/extremeamps-uat /etc/nginx/sites-enabled/extremeamps-uat
@@ -108,15 +105,15 @@ jobs:
             # Reload or start via PM2
             # --only ensures only the staging app is started from the shared ecosystem file
             if pm2 describe extremeamps-staging > /dev/null 2>&1; then
-              pm2 reload extremeamps-staging --update-env
+              sudo pm2 reload extremeamps-staging --update-env
             else
-              pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-staging --env deploy
+              sudo pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-staging --env staging
             fi
-            pm2 save
+            sudo pm2 save
 
       # ── 9. Local clean-up ───────────────────────────────────────────────────
       - name: Clean up local artefacts
-        run: rm -f deploy.tar.gz
+        run: sudo rm -f deploy.tar.gz
 
       # ── 10. Summary ──────────────────────────────────────────────────────────
       - name: Notify deployment success
