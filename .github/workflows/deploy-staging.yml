@@ -78,7 +78,7 @@ jobs:
             set -e
 
             APP_DIR="${{ env.APP_DIR }}"
-            DEPLOY_USER="${{ secrets.STAGING_SERVER_USERNAME }}"
+            DEPLOY_USER="${{ secrets.CLOUD_SERVER_USERNAME }}"
 
             sudo mkdir -p "$APP_DIR"
 
@@ -105,8 +105,11 @@ jobs:
             # Reload or start via PM2
             # --only ensures only the staging app is started from the shared ecosystem file
             if pm2 describe extremeamps-staging > /dev/null 2>&1; then
+              echo "restared"
               sudo pm2 reload extremeamps-staging --update-env
             else
+              echo "newly configured"
+              echo $APP_DIR
               sudo pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-staging --env staging
             fi
             sudo pm2 save
