@@ -104,14 +104,20 @@ jobs:
 
             # Reload or start via PM2
             # --only ensures only the staging app is started from the shared ecosystem file
-            if pm2 describe extremeamps-staging > /dev/null 2>&1; then
-              echo "restared"
-              sudo pm2 reload extremeamps-staging --update-env
+
+            APP_STATUS=$(sudo pm2 jlist | jq -r '.[] | select(.name=="extremeamps-staging") | .pm2_env.status' | head -n 1)
+
+            if [ "$APP_STATUS" = "online" ]; then
+              echo "Staging app exists and is online. Reloading..."
+              sudo pm2 reload extremeamps-staging --update-env || {
+                echo "Reload failed. Restarting..."
+                sudo pm2 restart extremeamps-staging --update-env
+              }
             else
-              echo "newly configured"
-              echo $APP_DIR
-              sudo pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-staging --env staging
+              echo "Staging app is missing or not online. Starting/restarting..."
+              sudo pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-staging --env staging              
             fi
+
             sudo pm2 save
 
       # ── 9. Local clean-up ───────────────────────────────────────────────────
