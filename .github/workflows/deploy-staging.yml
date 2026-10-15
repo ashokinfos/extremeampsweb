@@ -9,6 +9,7 @@ on:
 env:
   APP_DIR: /var/www/myapps/staging/extremeamps
   ENV_FILE: .env.staging
+  APP_NAME: extremeamps-staging
 
 jobs:
   build-and-deploy:
@@ -28,20 +29,27 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      # ── 3. Dependencies ──────────────────────────────────────────────────────
+      # ── 3. Prepare env for build ─────────────────────────────────────────────
+      # Next.js reads .env.production during `next build` (NODE_ENV=production).
+      # Copy .env.staging over it so NEXT_PUBLIC_* vars are baked in correctly.
+      # No GitHub vars or secrets needed — the source of truth is the repo file.
+      - name: Use staging env for build
+        run: cp ${{ env.ENV_FILE }} .env.production
+
+      # ── 4. Dependencies ──────────────────────────────────────────────────────
       - name: Install dependencies
         run: npm ci
 
-      # ── 4. Build ─────────────────────────────────────────────────────────────
+      # ── 5. Build ─────────────────────────────────────────────────────────────
       - name: Build (Staging)
         run: npm run build
 
-      # ── 5. Install production-only node_modules on CI ───────────────────────
-      # Avoids running npm install on the server (wrong Node version / no internet)
-      - name: Install production dependencies
-        run: npm install --omit=dev
+      # ── 6. Prune dev dependencies ────────────────────────────────────────────
+      # Remove devDependencies after build — keeps the archive smaller.
+      - name: Prune dev dependencies
+        run: npm prune --omit=dev
 
-      # ── 6. Package artefact ──────────────────────────────────────────────────
+      # ── 7. Package artefact ──────────────────────────────────────────────────
       - name: Create deployment archive
         run: |
           tar -czf deploy.tar.gz \
@@ -55,75 +63,70 @@ jobs:
             nginx-nextjs.conf \
             ${{ env.ENV_FILE }}
 
-      # ── 7. Upload archive to server ──────────────────────────────────────────
+      # ── 8. Upload archive to server ──────────────────────────────────────────
       - name: Upload archive to staging server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.CLOUD_SERVER_HOST }}
           username: ${{ secrets.CLOUD_SERVER_USERNAME }}
           key: ${{ secrets.CLOUD_SERVER_SSH_KEY }}
-          port: ${{ secrets.CLOUD_SERVER_PORT || 22 }}
+          port: ${{ secrets.CLOUD_SERVER_PORT }}
           source: "deploy.tar.gz"
           target: "/tmp/extremeamps-staging-deploy"
 
-      # ── 8. Remote: unpack and reload PM2 ────────────────────────────────────
+      # ── 9. Remote: unpack and reload PM2 ────────────────────────────────────
       - name: Deploy & restart on staging server
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.CLOUD_SERVER_HOST }}
           username: ${{ secrets.CLOUD_SERVER_USERNAME }}
           key: ${{ secrets.CLOUD_SERVER_SSH_KEY }}
-          port: ${{ secrets.CLOUD_SERVER_PORT || 22 }}
+          port: ${{ secrets.CLOUD_SERVER_PORT }}
           script: |
             set -e
 
             APP_DIR="${{ env.APP_DIR }}"
+            APP_NAME="${{ env.APP_NAME }}"
             DEPLOY_USER="${{ secrets.CLOUD_SERVER_USERNAME }}"
 
+            # Ensure app directory exists
             sudo mkdir -p "$APP_DIR"
 
-            # Stop before touching files so Next.js releases route-cache handles
-            if pm2 describe extremeamps-staging > /dev/null 2>&1; then
-              sudo pm2 stop extremeamps-staging || true
+            # Stop the app before touching files so Next.js releases
+            # route-cache file handles (owned by the PM2 process user)
+            if pm2 describe "$APP_NAME" > /dev/null 2>&1; then
+              pm2 stop "$APP_NAME" || true
             fi
 
-            # sudo required — runtime cache files are owned by the PM2 process user
+            # Remove old .next — needs sudo as runtime cache files
+            # are owned by the user Next.js ran as
             sudo rm -rf "$APP_DIR/.next"
 
             # Unpack artefact (node_modules included — no npm install needed)
             sudo tar -xzf /tmp/extremeamps-staging-deploy/deploy.tar.gz -C "$APP_DIR"
-            sudo rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
+            rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
 
-            # Fix ownership AFTER extraction so all unpacked files are accessible
+            # Fix ownership AFTER extraction so all files are accessible
             sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
 
-            # Deploy nginx config and reload (only if config is valid)
+            # Place the env file where Next.js expects it at runtime
+            cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
+
+            # Update nginx config (validate before reloading to avoid downtime)
             sudo cp "$APP_DIR/nginx-nextjs.conf" /etc/nginx/sites-available/extremeamps-uat
             sudo ln -sf /etc/nginx/sites-available/extremeamps-uat /etc/nginx/sites-enabled/extremeamps-uat
             sudo nginx -t && sudo systemctl reload nginx
 
-            # Reload or start via PM2
-            # --only ensures only the staging app is started from the shared ecosystem file
+            # Always do a clean start — delete if exists, then start fresh.
+            # Avoids any pm2 describe state-check issues.
+            pm2 delete "$APP_NAME" || true
+            pm2 start "$APP_DIR/ecosystem.config.cjs" --only "$APP_NAME" --env deploy
+            pm2 save
 
-            APP_STATUS=$(sudo pm2 jlist | jq -r '.[] | select(.name=="extremeamps-staging") | .pm2_env.status' | head -n 1)
-
-            if [ "$APP_STATUS" = "online" ]; then
-              echo "Staging app exists and is online. Reloading..."
-              sudo pm2 reload extremeamps-staging --update-env || {
-                echo "Reload failed. Restarting..."
-                sudo pm2 restart extremeamps-staging --update-env
-              }
-            else
-              echo "Staging app is missing or not online. Starting/restarting..."
-              sudo pm2 start "$APP_DIR/ecosystem.config.cjs" --only extremeamps-staging --env staging              
-            fi
-
-            sudo pm2 save
-
-      # ── 9. Local clean-up ───────────────────────────────────────────────────
+      # ── 10. Local clean-up ───────────────────────────────────────────────────
       - name: Clean up local artefacts
-        run: sudo rm -f deploy.tar.gz
+        run: rm -f deploy.tar.gz
 
-      # ── 10. Summary ──────────────────────────────────────────────────────────
+      # ── 11. Summary ──────────────────────────────────────────────────────────
       - name: Notify deployment success
         run: echo "✅ Staging deployment successful!"
