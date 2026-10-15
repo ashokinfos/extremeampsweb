@@ -19,7 +19,7 @@ import type { IBanner, ICatalogFilter, ICatalogVariant } from '../types/productT
 
 // ----------------------------------------------------------------------
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 24;
 
 const defaultFilters: FiltersProps = {
   search: '',
@@ -168,7 +168,7 @@ export default function ProductsView() {
               xs: 'repeat(2, 1fr)',
               sm: 'repeat(3, 1fr)',
               md: 'repeat(4, 1fr)',
-              lg: 'repeat(5, 1fr)',
+              lg: 'repeat(6, 1fr)',
             },
           }}
         >
