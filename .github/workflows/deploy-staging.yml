@@ -120,8 +120,8 @@ jobs:
             # Always do a clean start — delete if exists, then start fresh.
             # Avoids any pm2 describe state-check issues.
             pm2 delete "$APP_NAME" || true
-            pm2 start "$APP_DIR/ecosystem.config.cjs" --only "$APP_NAME" --env deploy
-            pm2 save
+            pm2 start "$APP_DIR/ecosystem.config.cjs" --only "$APP_NAME" --env staging
+            pm2 save --force
 
       # ── 10. Local clean-up ───────────────────────────────────────────────────
       - name: Clean up local artefacts

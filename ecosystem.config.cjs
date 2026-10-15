@@ -33,7 +33,7 @@ module.exports = {
       watch: false,
       max_memory_restart: '1G',
       env_staging: {
-        NODE_ENV: 'staging',
+        NODE_ENV: 'production',
         PORT: process.env.PORT || 8000,
         NEXT_PUBLIC_API_BASE_URL:
           process.env.NEXT_PUBLIC_API_BASE_URL ||
