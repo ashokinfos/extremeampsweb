@@ -72,18 +72,13 @@ export default function ProductsView() {
         MaxPrice: currentFilters.maxPrice ? Number(currentFilters.maxPrice) : undefined,
         Page: currentPage,
         PageSize: PAGE_SIZE,
+        SortBy: currentSort,
       };
       console.log(filter);
 
       const result = await catalogService.getCatalog(filter);
 
-      const items = [...result.Items];
-
-      if (currentSort === 'priceAsc') items.sort((a, b) => a.SellingPrice - b.SellingPrice);
-      else if (currentSort === 'priceDesc') items.sort((a, b) => b.SellingPrice - a.SellingPrice);
-      else if (currentSort === 'newest') items.reverse();
-
-      setProducts(items);
+      setProducts(result.Items);
       setTotalCount(result.TotalCount);
     },
     []

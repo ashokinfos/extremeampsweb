@@ -101,6 +101,7 @@ export interface ICatalogFilter {
   MaxPrice?: number;
   Page: number;
   PageSize: number;
+  SortBy?: string; // 'featured' | 'priceAsc' | 'priceDesc' | 'newest'
 }
 
 export interface IBanner {

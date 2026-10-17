@@ -3,6 +3,7 @@ import '@fontsource-variable/dm-sans';
 import '@fontsource/barlow/400.css';
 import '../src/global.css';
 
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { AppProviders } from '@/components/AppProviders';
 
 export const metadata: Metadata = {
@@ -61,7 +62,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
         />
-        <AppProviders>{children}</AppProviders>
+        <AppRouterCacheProvider>
+          <AppProviders>{children}</AppProviders>
+        </AppRouterCacheProvider>
       </body>
     </html>
   );
