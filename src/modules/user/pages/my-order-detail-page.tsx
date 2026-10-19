@@ -439,6 +439,12 @@ export default function MyOrderDetailPage() {
                     </Typography>
                     <Typography variant="body2">{PaymentInfo.PaymentMethod || '—'}</Typography>
                   </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">
+                      Transaction ID
+                    </Typography>
+                    <Typography variant="body2">{PaymentInfo.PaymentOrderId || '—'}</Typography>
+                  </Stack>
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Typography variant="body2" color="text.secondary">
                       Status
