@@ -38,7 +38,6 @@ Create `.env.production` on the server (do NOT commit this file):
 NEXT_PUBLIC_API_BASE_URL=https://www.gennest.in/ecomapp/api
 API_BASE_URL=https://www.gennest.in/ecomapp/api
 NEXT_PUBLIC_SITE_URL=https://www.extremeamps.in
-NEXT_PUBLIC_IMAGE_BASE_URL=https://www.gennest.in
 
 # IMPORTANT: Set API_INTERNAL_BASE_URL to the internal port your ASP.NET Core
 # API listens on. This allows Next.js server-side SSR fetches to bypass Nginx

@@ -19,7 +19,7 @@ import type { IBanner, ICatalogFilter, ICatalogVariant } from '../types/productT
 
 // ----------------------------------------------------------------------
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 24;
 
 const defaultFilters: FiltersProps = {
   search: '',
@@ -72,18 +72,13 @@ export default function ProductsView() {
         MaxPrice: currentFilters.maxPrice ? Number(currentFilters.maxPrice) : undefined,
         Page: currentPage,
         PageSize: PAGE_SIZE,
+        SortBy: currentSort,
       };
       console.log(filter);
 
       const result = await catalogService.getCatalog(filter);
 
-      const items = [...result.Items];
-
-      if (currentSort === 'priceAsc') items.sort((a, b) => a.SellingPrice - b.SellingPrice);
-      else if (currentSort === 'priceDesc') items.sort((a, b) => b.SellingPrice - a.SellingPrice);
-      else if (currentSort === 'newest') items.reverse();
-
-      setProducts(items);
+      setProducts(result.Items);
       setTotalCount(result.TotalCount);
     },
     []
@@ -168,7 +163,7 @@ export default function ProductsView() {
               xs: 'repeat(2, 1fr)',
               sm: 'repeat(3, 1fr)',
               md: 'repeat(4, 1fr)',
-              lg: 'repeat(5, 1fr)',
+              lg: 'repeat(6, 1fr)',
             },
           }}
         >

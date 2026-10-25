@@ -198,7 +198,8 @@ export function UserProfileView() {
                   onChange={(e) => setFormData({ ...formData, LastName: e.target.value })}
                   disabled={!editMode}
                 />
-                <TextField fullWidth label="Email" value={profile.Email} disabled />
+                <TextField fullWidth label="Email" value={editMode ? formData.Email : profile.Email ?? ""}
+                  disabled={!editMode} onChange={(e) => setFormData({ ...formData, Email: e.target.value })} />
                 <TextField fullWidth label="Username" value={profile.UserName} disabled />
                 <TextField
                   fullWidth

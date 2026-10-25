@@ -6,14 +6,15 @@ import { idFromProductSlug } from '@/shared/utils/productSlug';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.extremeamps.in';
 
-// Server-side API base — prefers the internal/backend URL when set,
-// falls back to the public URL (works in production when Next.js and the API
-// are on the same server behind the same Nginx).
+// Server-side API base — must be set via environment variable.
+// API_INTERNAL_BASE_URL is optional; use it for a faster internal network path.
 const API_BASE =
   process.env.API_INTERNAL_BASE_URL ??
-  process.env.API_BASE_URL ??
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  'https://www.gennest.in/ecomapp/api';
+  process.env.API_BASE_URL;
+
+if (!API_BASE) {
+  throw new Error('API_BASE_URL environment variable is not set');
+}
 
 async function fetchProduct(variantId: string) {
   try {
