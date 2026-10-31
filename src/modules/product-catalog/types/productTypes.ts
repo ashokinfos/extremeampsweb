@@ -111,4 +111,5 @@ export interface IBanner {
   AltText: string;
   Order: number;
   IsActive: boolean;
+  ProductUrl?: string;
 }
