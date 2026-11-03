@@ -2,7 +2,7 @@
 
 import { Label } from '@/shared/components/label';
 import { Iconify } from '@/shared/components/iconify';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardContent } from '@/shared/layouts/home';
 import { useParams, useRouter } from 'next/navigation';
 import useAuth from '@/modules/auth/contexts/hooks/useAuth';
@@ -15,6 +15,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
+import Modal from '@mui/material/Modal';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -36,6 +37,8 @@ const imgUrl = (path: string | null | undefined) => (path ? path : PLACEHOLDER_I
 
 // ----------------------------------------------------------------------
 
+const ZOOM_SCALE = 2.5; // magnification factor
+
 function ImageGallery({
   images,
   fallback,
@@ -43,9 +46,18 @@ function ImageGallery({
   images: { ImageUrl: string; AltText?: string; IsPrimary?: boolean }[];
   fallback?: string | null;
 }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   const allImages = images.length > 0 ? images : fallback ? [{ ImageUrl: fallback }] : [];
   const primary = allImages.find((i) => (i as any).IsPrimary) ?? allImages[0];
   const [selected, setSelected] = useState(primary?.ImageUrl ?? null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  // Magnifier state
+  const [showLens, setShowLens] = useState(false);
+  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });  // cursor % within image
+  const imgContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const p = allImages.find((i) => (i as any).IsPrimary) ?? allImages[0];
@@ -53,9 +65,25 @@ function ImageGallery({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images, fallback]);
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setLensPos({ x, y });
+  };
+
+  // Lens size as % of container
+  const LENS_SIZE = 35; // %
+
   return (
-    <Stack spacing={1.5}>
+    <Stack spacing={1.5} sx={{ position: 'relative' }}>
+      {/* Main image with magnifier */}
       <Box
+        ref={imgContainerRef}
+        onMouseEnter={() => !isMobile && setShowLens(true)}
+        onMouseLeave={() => setShowLens(false)}
+        onMouseMove={handleMouseMove}
+        onClick={() => setLightboxOpen(true)}
         sx={{
           width: 1,
           borderRadius: 2,
@@ -63,16 +91,89 @@ function ImageGallery({
           bgcolor: 'background.neutral',
           aspectRatio: '1 / 1',
           position: 'relative',
+          cursor: isMobile ? 'zoom-in' : 'crosshair',
+          userSelect: 'none',
         }}
       >
+        {/* Main image */}
         <Box
           component="img"
           src={imgUrl(selected)}
           alt="product"
-          sx={{ width: 1, height: 1, objectFit: 'contain' }}
+          sx={{ width: 1, height: 1, objectFit: 'contain', display: 'block' }}
         />
+
+        {/* Lens highlight box */}
+        {showLens && (
+          <Box
+            sx={{
+              position: 'absolute',
+              width: `${LENS_SIZE}%`,
+              height: `${LENS_SIZE}%`,
+              border: '2px solid',
+              borderColor: 'primary.main',
+              borderRadius: 1,
+              bgcolor: 'rgba(255,255,255,0.15)',
+              pointerEvents: 'none',
+              transform: 'translate(-50%, -50%)',
+              left: `${lensPos.x}%`,
+              top: `${lensPos.y}%`,
+              // clamp so lens doesn't go out of bounds
+              maxLeft: `${100 - LENS_SIZE / 2}%`,
+            }}
+          />
+        )}
+
+        {/* Zoom icon hint */}
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 8,
+            right: 8,
+            bgcolor: 'rgba(0,0,0,0.4)',
+            borderRadius: 1,
+            px: 0.75,
+            py: 0.25,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            opacity: showLens ? 0 : 1,
+            transition: 'opacity 0.2s',
+          }}
+        >
+          <Iconify icon="solar:magnifer-zoom-in-bold" sx={{ color: '#fff', fontSize: 14 }} />
+          <Typography variant="caption" sx={{ color: '#fff', fontSize: '0.65rem' }}>
+            {isMobile ? 'Tap to zoom' : 'Hover to zoom'}
+          </Typography>
+        </Box>
       </Box>
 
+      {/* Zoom preview panel — shown beside image on desktop */}
+      {showLens && (
+        <Box
+          sx={{
+            position: 'absolute',
+            left: 'calc(100% + 16px)',
+            top: 0,
+            width: 380,
+            height: 380,
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+            boxShadow: 8,
+            overflow: 'hidden',
+            zIndex: 10,
+            pointerEvents: 'none',
+            backgroundImage: `url(${imgUrl(selected)})`,
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: `${ZOOM_SCALE * 100}%`,
+            backgroundPosition: `${lensPos.x}% ${lensPos.y}%`,
+          }}
+        />
+      )}
+
+      {/* Thumbnails */}
       {allImages.length > 1 && (
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
           {allImages.map((img, idx) => (
@@ -91,11 +192,56 @@ function ImageGallery({
                 border: (t) =>
                   `2px solid ${selected === img.ImageUrl ? t.palette.primary.main : t.palette.divider}`,
                 transition: 'border-color 0.2s',
+                '&:hover': { borderColor: 'primary.light' },
               }}
             />
           ))}
         </Stack>
       )}
+
+      {/* Lightbox — fullscreen image on click */}
+      <Modal
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
+        <Box
+          sx={{
+            position: 'relative',
+            maxWidth: '92vw',
+            maxHeight: '92vh',
+            outline: 'none',
+          }}
+          onClick={() => setLightboxOpen(false)}
+        >
+          <Box
+            component="img"
+            src={imgUrl(selected)}
+            alt="product zoomed"
+            sx={{
+              maxWidth: '92vw',
+              maxHeight: '92vh',
+              objectFit: 'contain',
+              borderRadius: 2,
+              boxShadow: 24,
+              display: 'block',
+            }}
+          />
+          <IconButton
+            onClick={() => setLightboxOpen(false)}
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              bgcolor: 'rgba(0,0,0,0.5)',
+              color: '#fff',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.75)' },
+            }}
+          >
+            <Iconify icon="mingcute:close-line" />
+          </IconButton>
+        </Box>
+      </Modal>
     </Stack>
   );
 }

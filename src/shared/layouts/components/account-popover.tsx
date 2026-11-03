@@ -52,10 +52,6 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     [handleClosePopover, router]
   );
 
-  if(!user?.FirstName) {
-    router.push('/sign-in');
-  }
-
   return (
     <>
       <IconButton
