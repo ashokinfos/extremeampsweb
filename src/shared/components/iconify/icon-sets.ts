@@ -185,4 +185,7 @@ export default {
   'eva:pin-outline': {
     body: '<path fill="currentColor" d="M12 2a8 8 0 1 0 8 8a8 8 0 0 0-8-8m0 14a6 6 0 1 1 6-6a6 6 0 0 1-6 6m0-10a4 4 0 1 0 4 4a4 4 0 0 0-4-4m0 6a2 2 0 1 1 2-2a2 2 0 0 1-2 2"/>',
   },
+  'solar:magnifer-zoom-in-bold': {
+    body: '<path fill="currentColor" fill-rule="evenodd" d="M10.5 1.25a9.25 9.25 0 1 0 5.942 16.44l3.433 3.434a.75.75 0 1 0 1.06-1.06l-3.433-3.434A9.25 9.25 0 0 0 10.5 1.25M2.75 10.5a7.75 7.75 0 1 1 15.5 0a7.75 7.75 0 0 1-15.5 0M10.5 7a.75.75 0 0 1 .75.75V9.5h1.75a.75.75 0 0 1 0 1.5H11.25v1.75a.75.75 0 0 1-1.5 0V11H8a.75.75 0 0 1 0-1.5h1.75V7.75A.75.75 0 0 1 10.5 7" clip-rule="evenodd"/>',
+  },
 };
