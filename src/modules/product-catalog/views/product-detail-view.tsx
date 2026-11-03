@@ -404,8 +404,8 @@ function DetailSkeleton() {
 // ----------------------------------------------------------------------
 
 export default function ProductDetailView() {
-  const params = useParams();
-  const productSlug = params?.productSlug as string | undefined;
+  const params = useParams<{ productSlug: string[] }>();
+  const productSlug = params?.productSlug;
   const variantId = idFromProductSlug(productSlug ?? '');
   const router = useRouter();
   const theme = useTheme();
@@ -460,7 +460,7 @@ export default function ProductDetailView() {
   const handleVariantSelect = (v: IProductDetailVariant) => {
     setSelectedVariant(v);
     setQty(1);
-    router.replace(`/product/${toProductSlug(product?.Name ?? '', v.Id)}`);
+    router.replace(`/product/${toProductSlug(product?.Name ?? '', v.Id, product?.CategoryName)}`);
   };
 
   const handleAddToCart = async () => {
@@ -538,7 +538,7 @@ export default function ProductDetailView() {
           brand={appInfo?.Name ?? 'Extreme Amps'}
           price={schemaPrice}
           availability={inStock ? 'InStock' : 'OutOfStock'}
-          url={`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.extremeamps.in'}/product/${toProductSlug(product.Name, selectedVariant.Id)}`}
+          url={`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.extremeamps.in'}/product/${toProductSlug(product.Name, selectedVariant.Id, product.CategoryName)}`}
         />
       )}
 

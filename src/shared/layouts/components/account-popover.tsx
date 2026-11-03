@@ -52,6 +52,15 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     [handleClosePopover, router]
   );
 
+  // Null-safe display name — never shows "undefined"
+  const displayName = user
+    ? `${user.FirstName ?? ''} ${user.LastName ?? ''}`.trim() || 'My Account'
+    : 'My Account';
+
+  const initials = user
+    ? `${user.FirstName?.[0] ?? ''}${user.LastName?.[0] ?? ''}`.toUpperCase() || 'U'
+    : 'U';
+
   return (
     <>
       <IconButton
@@ -66,8 +75,8 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
         }}
         {...other}
       >
-        <Avatar src="" alt={user?.FirstName + ' ' + user?.LastName} sx={{ width: 1, height: 1 }}>
-          {(user?.FirstName + ' ' + user?.LastName).charAt(0).toUpperCase()}
+        <Avatar src="" alt={displayName} sx={{ width: 1, height: 1 }}>
+          {initials}
         </Avatar>
       </IconButton>
 
@@ -85,11 +94,11 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
       >
         <Box sx={{ p: 2, pb: 1.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {user?.FirstName + ' ' + user?.LastName}
+            {displayName}
           </Typography>
 
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {user?.Email}
+            {user?.Email ?? ''}
           </Typography>
         </Box>
 

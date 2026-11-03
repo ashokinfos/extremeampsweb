@@ -36,7 +36,7 @@ export function ProductItem({ product }: { product: ICatalogVariant }) {
   const router = useRouter();
   const hasDiscount = product.DiscountedPrice > 0 && product.DiscountedPrice < product.SellingPrice;
   const effectivePrice = hasDiscount ? product.DiscountedPrice : product.SellingPrice;
-  const productUrl = `/product/${toProductSlug(product.ProductName, product.Id)}`;
+  const productUrl = `/product/${toProductSlug(product.ProductName, product.Id, product.CategoryName)}`;
 
   const handleNavigate = () => router.push(productUrl);
 
