@@ -28,9 +28,11 @@ export function Logo({
   ...other
 }: LogoProps) {
   const { appInfo } = useAppInfo();
-  const fallbackPath = getPublicAssetPath('assets/icons/navbar/Logo.webp');
+  const fallbackPath = getPublicAssetPath('assets/icons/navbar/Logo.png');
 
-  const logoSrc = appInfo?.Logo ? `data:image/png;base64,${appInfo.Logo}` : fallbackPath;
+  // Logo from API is now a CDN URL (DigitalOcean Spaces), not base64
+  //const logoSrc = appInfo?.Logo ?? fallbackPath;
+  const logoSrc = fallbackPath;
 
   return (
     <LogoRoot

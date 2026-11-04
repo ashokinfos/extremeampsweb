@@ -14,6 +14,13 @@ export const metadata: Metadata = {
   },
   description:
     'Extreme Amps — Class D Amplifier Manufacturer and Audio PCB Assembly in Vellore, India.',
+  icons: {
+    icon: [
+      { url: '/assets/icons/navbar/Logo.png', type: 'image/png' },
+      { url: '/assets/icons/navbar/Logo.webp', type: 'image/webp' },
+    ],
+    apple: '/assets/icons/navbar/Logo.png',
+  },
   robots: { index: true, follow: true },
   openGraph: {
     type: 'website',
