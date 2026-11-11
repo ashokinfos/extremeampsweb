@@ -28,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const variants = await fetchAllVariants();
 
   const productUrls: MetadataRoute.Sitemap = variants.map((v: any) => ({
-    url: `${SITE_URL}/product/${toProductSlug(v.ProductName ?? v.Name ?? '', v.Id ?? v.VariantId ?? '')}`,
+    url: `${SITE_URL}/product/${toProductSlug(v.ProductName ?? v.Name ?? '', v.Id ?? v.VariantId ?? '', v.CategoryName ?? '')}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.8,

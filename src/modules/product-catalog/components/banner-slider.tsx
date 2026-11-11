@@ -4,6 +4,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
+import NextLink from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper/modules';
 
@@ -64,15 +65,30 @@ export function BannerSlider({ banners }: Props) {
         loop={active.length > 1}
         style={{ width: '100%', height: '100%' }}
       >
-        {active.map((banner) => (
-          <SwiperSlide key={banner.Id}>
+        {active.map((banner) => {
+          const img = (
             <img
               src={banner.ImageUrl}
               alt={banner.AltText || banner.Name}
               style={{ width: '100%', height: '100%', objectFit: 'fill', display: 'block' }}
             />
-          </SwiperSlide>
-        ))}
+          );
+
+          return (
+            <SwiperSlide key={banner.Id}>
+              {banner.ProductUrl ? (
+                <NextLink
+                  href={banner.ProductUrl}
+                  style={{ display: 'block', width: '100%', height: '100%', cursor: 'pointer' }}
+                >
+                  {img}
+                </NextLink>
+              ) : (
+                img
+              )}
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
     </Box>
   );

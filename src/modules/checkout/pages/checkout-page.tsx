@@ -20,11 +20,16 @@ import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Radio from '@mui/material/Radio';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
 import Stepper from '@mui/material/Stepper';
+import Checkbox from '@mui/material/Checkbox';
 import StepLabel from '@mui/material/StepLabel';
 import Typography from '@mui/material/Typography';
 import RadioGroup from '@mui/material/RadioGroup';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -36,6 +41,17 @@ import type { IStockIssue, IShippingRate, IShippingAddress } from '../types/chec
 
 const STEPS = ['Shipping Address', 'Delivery Options', 'Payment'];
 const PICKUP_PINCODE = '600001';
+const TERMS_VERSION = 'v1.1';
+
+const TERMS_AND_CONDITIONS = [
+  'All purchases are final. No returns, refunds, or exchanges will be accepted after purchase.',
+  'Products sold are intended for DIY (Do-It-Yourself) users and individuals with the required technical knowledge and skills.',
+  'Customers are responsible for ensuring proper installation, handling, and usage of purchased items.',
+  'The seller is not responsible for damages caused by incorrect installation, misuse, or modification of products.',
+  'By placing an order, the customer confirms they understand the product specifications and usage requirements.',
+  'Orders once confirmed cannot be cancelled after processing or shipment.',
+  'Please review product details carefully before completing your purchase.',
+];
 
 const toShippingAddress = (a: IAddressInfo | ISaveAddress): IShippingAddress => ({
   FirstName: a.FirstName,
@@ -76,6 +92,10 @@ export default function CheckoutPage() {
   // Payment
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [stockErrors, setStockErrors] = useState<IStockIssue[]>([]);
+
+  // Terms & Conditions
+  const [termsDialogOpen, setTermsDialogOpen] = useState(false);
+  const [termsChecked, setTermsChecked] = useState(false);
 
   const loadAddresses = async () => {
     setLoadingAddresses(true);
@@ -185,6 +205,8 @@ export default function CheckoutPage() {
         ShippingAddress: address,
         SelectedCourierName: selectedCourier.CourierName,
         ShippingCost: selectedCourier.Rate,
+        TermsAccepted: true,
+        TermsVersion: TERMS_VERSION,
       });
       if (!result.Status) {
         if (result.OutOfStockItems?.length) {
@@ -201,6 +223,17 @@ export default function CheckoutPage() {
     } finally {
       setLoadingPayment(false);
     }
+  };
+
+  // Opens T&C dialog — actual payment fires only after acceptance
+  const handlePayClick = () => {
+    setTermsChecked(false);
+    setTermsDialogOpen(true);
+  };
+
+  const handleTermsAccept = () => {
+    setTermsDialogOpen(false);
+    handleInitiatePayment();
   };
 
   const orderTotal = subTotal + (selectedCourier?.Rate ?? 0);
@@ -492,7 +525,7 @@ export default function CheckoutPage() {
           size="large"
           fullWidth
           color="primary"
-          onClick={handleInitiatePayment}
+          onClick={handlePayClick}
           disabled={loadingPayment}
           startIcon={
             loadingPayment ? (
@@ -625,6 +658,79 @@ export default function CheckoutPage() {
         onClose={() => setAddDialogOpen(false)}
         onSave={handleSaveNewAddress}
       />
+
+      {/* ── Purchase Terms & Conditions Dialog ─────────────────────────── */}
+      <Dialog
+        open={termsDialogOpen}
+        onClose={() => setTermsDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Purchase Terms and Conditions</Typography>
+            <Typography variant="caption" color="text.secondary">
+              Version: {TERMS_VERSION}
+            </Typography>
+          </Stack>
+        </DialogTitle>
+
+        <DialogContent dividers>
+          <Stack spacing={1.5}>
+            {TERMS_AND_CONDITIONS.map((term, index) => (
+              <Stack key={index} direction="row" spacing={1.5} justifyContent="flex-start" alignItems="center">
+                <Box
+                  sx={{
+                    mt: 0.4,
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: 'primary.main',
+                    flexShrink: 0,
+                  }}
+                />
+                <Typography variant="body2">{term}</Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, py: 2, flexDirection: 'column', alignItems: 'stretch', gap: 1.5 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={termsChecked}
+                onChange={(e) => setTermsChecked(e.target.checked)}
+                color="primary"
+              />
+            }
+            label={
+              <Typography variant="body2">
+                I have read and agree to the Purchase Terms and Conditions
+              </Typography>
+            }
+            sx={{ ml: 0 }}
+          />
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={() => setTermsDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              fullWidth
+              disabled={!termsChecked}
+              onClick={handleTermsAccept}
+              startIcon={<Iconify icon="solar:lock-password-bold" />}
+            >
+              Accept & Pay {fCurrency(orderTotal)}
+            </Button>
+          </Stack>
+        </DialogActions>
+      </Dialog>
     </DashboardContent>
   );
 }

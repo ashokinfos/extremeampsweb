@@ -31,6 +31,8 @@ export interface IInitiateCheckout {
   ShippingAddress: IShippingAddress;
   SelectedCourierName: string;
   ShippingCost: number;
+  TermsAccepted: boolean;
+  TermsVersion: string;
 }
 
 export interface IReInitiateCheckout {

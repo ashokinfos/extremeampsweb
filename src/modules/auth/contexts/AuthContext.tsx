@@ -43,7 +43,7 @@ function reducer(state: AuthContextType, action: Action) {
     case 'loading':
       return { ...state, loading: action.payload };
     case 'login':
-      return { ...state, loadding: false, user: action.payload };
+      return { ...state, loading: false, user: action.payload };
     case 'logout':
       localStorage.removeItem('EcomAccessToken');
       localStorage.removeItem('EcomRefreshToken');
@@ -80,9 +80,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // refresh failed — clear tokens and mark as unauthenticated
           localStorage.removeItem('EcomAccessToken');
           localStorage.removeItem('EcomRefreshToken');
+          dispatch({ type: 'logout' });
         }
+      } else {
+        dispatch({ type: 'logout' });
       }
-      dispatch({ type: 'loading', payload: false });
     };
 
     if (token) {
@@ -98,6 +100,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // No token — not logged in, done loading
       dispatch({ type: 'loading', payload: false });
     }
+
+    // Periodic check — re-validate token every 5 minutes so idle expiry
+    // doesn't leave stale user state. If the token has expired while the
+    // tab was open, this triggers the refresh/logout flow.
+    const interval = setInterval(() => {
+      const currentToken = localStorage.getItem('EcomAccessToken');
+      if (currentToken) {
+        try {
+          const decoded = jwtDecode<MyJwtPayload>(currentToken);
+          if (decoded.exp <= Date.now() / 1000) {
+            // Token expired while idle — try refresh or logout
+            refreshTokenInfo();
+          }
+        } catch {
+          // Token is malformed/corrupted — logout
+          dispatch({ type: 'logout' });
+        }
+      } else {
+        // Token was removed (e.g. by interceptor) — clear user state
+        dispatch({ type: 'logout' });
+      }
+    }, 5 * 60 * 1000); // every 5 minutes
+
+    return () => clearInterval(interval);
   }, []);
 
   const login = async (accessToken: string, refreshToken: string) => {

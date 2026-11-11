@@ -17,18 +17,18 @@ const AppFooter = () => {
     <Box
       component="footer"
       sx={{
-        py: 3,
+        py: 2,
         px: 2,
         mt: 'auto',
-        bgcolor: 'grey.800',
-        color: 'grey.300',
+        bgcolor: 'grey.300',
+        color: 'grey.900',
         textAlign: 'center',
       }}
     >
       <Typography variant="body2">
         © {new Date().getFullYear()} {companyName}. All rights reserved.
       </Typography>
-      <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+      {/* <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
         {[
           { href: '/terms-and-conditions', label: 'Terms & Conditions' },
           { href: '/refund-policy', label: 'Refund Policy' },
@@ -48,7 +48,7 @@ const AppFooter = () => {
             {link.label}
           </Button>
         ))}
-      </Box>
+      </Box> */}
     </Box>
   );
 };
