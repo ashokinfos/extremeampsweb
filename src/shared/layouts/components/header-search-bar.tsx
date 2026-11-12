@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { alpha } from '@mui/material/styles';
 import { Iconify } from '@/shared/components/iconify';
 import { useSearch } from '@/shared/contexts/SearchContext';
@@ -26,6 +26,18 @@ export function HeaderSearchBar({ sx, placeholder = 'Search…' }: HeaderSearchB
     setQuery('');
     inputRef.current?.focus();
   };
+
+  // Cmd+K / Ctrl+K focuses this inline search bar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <InputBase
