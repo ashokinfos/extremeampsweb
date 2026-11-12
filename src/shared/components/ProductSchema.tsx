@@ -44,8 +44,9 @@ export default function ProductSchema({
     '@type': 'Product',
     name,
     description: cleanDescription,
-    sku,
-    image,
+    // Omit sku and image when empty — invalid schema is worse than missing fields
+    ...(sku ? { sku } : {}),
+    ...(image ? { image } : {}),
     brand: {
       '@type': 'Brand',
       name: brand,
@@ -82,7 +83,10 @@ export default function ProductSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }}
+      dangerouslySetInnerHTML={{
+        // Replace < with \u003c to prevent XSS via user-controlled product data
+        __html: JSON.stringify(ld).replace(/</g, '\\u003c'),
+      }}
     />
   );
 }

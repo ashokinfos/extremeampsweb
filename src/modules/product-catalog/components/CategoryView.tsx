@@ -36,7 +36,6 @@ const SIDEBAR_WIDTH = 220;
 
 type Props = {
   categoryName: string;
-  breadcrumbJsonLd: string;
 };
 
 // ----------------------------------------------------------------------
@@ -132,7 +131,7 @@ function CategorySidebar({
 
 // ----------------------------------------------------------------------
 
-export function CategoryView({ categoryName, breadcrumbJsonLd }: Props) {
+export function CategoryView({ categoryName }: Props) {
   const params = useParams<{ categorySlug: string }>();
   const categoryId = idFromCategorySlug(params?.categorySlug ?? '');
 
@@ -197,12 +196,6 @@ export function CategoryView({ categoryName, breadcrumbJsonLd }: Props) {
 
   return (
     <DashboardContent maxWidth={false}>
-      {/* JSON-LD breadcrumb rendered client-side to avoid RSC boundary issues */}
-      <script
-        type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }}
-      />
       <Box sx={{ display: 'flex', gap: { md: 3 }, alignItems: 'flex-start' }}>
 
         {/* ── Desktop sidebar ── */}
