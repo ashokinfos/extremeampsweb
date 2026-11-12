@@ -78,16 +78,16 @@ export function HomeLayout({
           sx={{
             display: { xs: 'none', md: 'flex' },
             px: 2,
-            height: 50,
-            width: { xs: 1, md: 0.7 },
-            borderRadius: 1,
+            height: 44,
+            width: { xs: 1, md: 0.65 },
+            borderRadius: 2,
             border: (t: any) => `1px solid ${t.palette.divider}`,
             bgcolor: 'background.paper',
           }}
         />
       ),
       rightArea: (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           {user ? (
             <>
               <CartIcon totalItems={totalItems} onClick={openDrawer} />
@@ -99,10 +99,14 @@ export function HomeLayout({
               <Button
                 component={RouterLink}
                 href="/sign-in"
-                variant="outlined"
-                color="inherit"
+                variant="contained"
                 size="small"
-                sx={{ display: { xs: 'none', sm: 'flex' }, borderColor: 'primary.contrastText' }}
+                sx={{
+                  display: { xs: 'none', sm: 'flex' },
+                  bgcolor: 'primary.contrastText',
+                  color: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.contrastText', opacity: 0.92 },
+                }}
               >
                 Sign In
               </Button>
@@ -126,9 +130,9 @@ export function HomeLayout({
             display: { xs: 'flex', md: 'none' },
             px: 2,
             margin: '0px auto',
-            height: 50,
+            height: 44,
             width: { xs: 0.9, md: 0.7 },
-            borderRadius: 1,
+            borderRadius: 2,
             border: (t: any) => `1px solid ${t.palette.divider}`,
             bgcolor: 'background.paper',
           }}
@@ -139,7 +143,7 @@ export function HomeLayout({
     return (
       <HeaderSection
         disableElevation
-        disableOffset
+        disableOffset={false}
         layoutQuery={layoutQuery}
         {...slotProps?.header}
         slots={{ ...headerSlots, ...slotProps?.header?.slots }}
