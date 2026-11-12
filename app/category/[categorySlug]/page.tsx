@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 
 import { HomeLayout } from '@/shared/layouts/home';
-import { idFromCategorySlug } from '@/shared/utils';
 
-import { CategoryView } from './CategoryView';
+import { CategoryView } from '../../../src/modules/product-catalog/components/CategoryView';
 
 // ----------------------------------------------------------------------
 
@@ -53,8 +52,10 @@ export default async function CategoryPage({ params }: Props) {
   const categoryName = nameFromSlug(categorySlug);
   const canonical = `${SITE_URL}/category/${categorySlug}`;
 
-  // JSON-LD BreadcrumbList for Google rich results
-  const breadcrumbJsonLd = {
+  // JSON-LD BreadcrumbList — passed as a plain string so CategoryView
+  // can render it via dangerouslySetInnerHTML without crossing the RSC boundary
+  // with a DOM element (which can cause hydration errors on client navigation).
+  const breadcrumbJsonLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
@@ -71,17 +72,11 @@ export default async function CategoryPage({ params }: Props) {
         item: canonical,
       },
     ],
-  };
+  });
 
   return (
     <HomeLayout>
-      <script
-        id="breadcrumb-jsonld"
-        type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
-      <CategoryView categoryName={categoryName} />
+      <CategoryView categoryName={categoryName} breadcrumbJsonLd={breadcrumbJsonLd} />
     </HomeLayout>
   );
 }
