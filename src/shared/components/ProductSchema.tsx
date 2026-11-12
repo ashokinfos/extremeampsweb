@@ -13,6 +13,10 @@ interface ProductSchemaProps {
   priceCurrency?: string;
   availability: 'InStock' | 'OutOfStock' | 'PreOrder';
   url: string;
+  /** ISO date string e.g. "2027-01-01" — how long this price is valid */
+  priceValidUntil?: string;
+  /** Category/product type name */
+  category?: string;
 }
 
 /**
@@ -29,17 +33,31 @@ export default function ProductSchema({
   priceCurrency = 'INR',
   availability,
   url,
+  priceValidUntil,
+  category,
 }: ProductSchemaProps) {
-  const ld = {
+  // Strip HTML tags from description before embedding in schema
+  const cleanDescription = description.replace(/<[^>]+>/g, '').trim().slice(0, 500);
+
+  const ld: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name,
-    description,
+    description: cleanDescription,
     sku,
     image,
     brand: {
       '@type': 'Brand',
       name: brand,
+    },
+    manufacturer: {
+      '@type': 'Organization',
+      name: 'Extreme Amps',
+      url: 'https://www.extremeamps.in',
+    },
+    countryOfOrigin: {
+      '@type': 'Country',
+      name: 'India',
     },
     offers: {
       '@type': 'Offer',
@@ -48,8 +66,18 @@ export default function ProductSchema({
       price,
       availability: `https://schema.org/${availability}`,
       itemCondition: 'https://schema.org/NewCondition',
+      seller: {
+        '@type': 'Organization',
+        name: 'Extreme Amps',
+        url: 'https://www.extremeamps.in',
+      },
+      ...(priceValidUntil ? { priceValidUntil } : {}),
     },
   };
+
+  if (category) {
+    ld.category = category;
+  }
 
   return (
     <script
