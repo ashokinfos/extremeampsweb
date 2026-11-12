@@ -27,12 +27,23 @@ export function HeaderSearchBar({ sx, placeholder = 'Search…' }: HeaderSearchB
     inputRef.current?.focus();
   };
 
-  // Cmd+K / Ctrl+K focuses this inline search bar
+  // Cmd+K / Ctrl+K focuses this inline search bar.
+  // Only claims the shortcut when the input element is actually visible in the
+  // layout (i.e. not hidden by display:none). When visible, it also stops
+  // propagation so any co-mounted overlay handler (e.g. Searchbar) does not
+  // fire at the same time.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        const el = inputRef.current;
+        if (!el) return;
+        // offsetParent is null when the element (or an ancestor) has
+        // display:none — meaning this bar is hidden at the current breakpoint.
+        // In that case, don't claim the shortcut.
+        if (el.offsetParent === null) return;
         e.preventDefault();
-        inputRef.current?.focus();
+        e.stopPropagation();
+        el.focus();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
