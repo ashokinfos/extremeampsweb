@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardContent } from '@/shared/layouts/home';
 import { useSearch } from '@/shared/contexts/SearchContext';
-import { useAppInfo } from '@/shared/contexts/AppInfoContext';
-import { useSeoMeta } from '@/shared/contexts/hooks/useSeoMeta';
 
 import Box from '@mui/material/Box';
 import Pagination from '@mui/material/Pagination';
@@ -39,17 +37,6 @@ export default function ProductsView() {
   const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]);
 
   const { committed, clearSearch } = useSearch();
-  const { appInfo } = useAppInfo();
-
-  useSeoMeta({
-    title: appInfo?.Name
-      ? `${appInfo.Name} | Class D Amplifier Manufacturer & OEM Audio Solutions`
-      : 'Class D Amplifier Manufacturer & OEM Audio Solutions India',
-    description: `${appInfo?.Name ?? 'Extreme Amps'} — Class D Amplifier Manufacturer and Audio PCB Assembly in Vellore, India. Shop TPA3116D2 amplifier boards, 5.1 home theater kits, speaker protection kits, and high-efficiency audio amplifiers.`,
-    keywords:
-      'Class D Amplifier Manufacturer, Audio PCB Assembly India, Electronics R&D Vellore, OEM Audio Solutions, TPA3116D2 Amplifier Board, 5.1 Home Theater Remote Kit, Speaker Protection Kit Manufacturer, 14-Segment LED Display Design, High-Efficiency Audio Amplifiers, 5.1 Ch DSP Kit, HDMI CEC Audio Controller, Biquad Filter EQ Control',
-    canonical: '/',
-  });
 
   useEffect(() => {
     setPage(1);
@@ -74,7 +61,6 @@ export default function ProductsView() {
         PageSize: PAGE_SIZE,
         SortBy: currentSort,
       };
-      console.log(filter);
 
       const result = await catalogService.getCatalog(filter);
 
@@ -85,7 +71,6 @@ export default function ProductsView() {
   );
 
   useEffect(() => {
-    console.log(filters);
     fetchProducts(page, filters, sortBy);
   }, [page, filters, sortBy, fetchProducts]);
 

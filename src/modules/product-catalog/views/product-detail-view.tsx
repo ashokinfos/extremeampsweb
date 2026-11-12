@@ -6,9 +6,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardContent } from '@/shared/layouts/home';
 import { useParams, useRouter } from 'next/navigation';
 import useAuth from '@/modules/auth/contexts/hooks/useAuth';
-import { useAppInfo } from '@/shared/contexts/AppInfoContext';
-import ProductSchema from '@/shared/components/ProductSchema';
-import { useSeoMeta } from '@/shared/contexts/hooks/useSeoMeta';
 import { fCurrency, toProductSlug, idFromProductSlug } from '@/shared/utils';
 
 import Box from '@mui/material/Box';
@@ -42,9 +39,11 @@ const ZOOM_SCALE = 2.5; // magnification factor
 function ImageGallery({
   images,
   fallback,
+  productName,
 }: {
   images: { ImageUrl: string; AltText?: string; IsPrimary?: boolean }[];
   fallback?: string | null;
+  productName?: string;
 }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -99,7 +98,7 @@ function ImageGallery({
         <Box
           component="img"
           src={imgUrl(selected)}
-          alt="product"
+          alt={images.find(i => i.ImageUrl === selected)?.AltText || (productName ? `${productName} — Extreme Amps` : 'Product image')}
           sx={{ width: 1, height: 1, objectFit: 'contain', display: 'block' }}
         />
 
@@ -412,28 +411,11 @@ export default function ProductDetailView() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAuth();
   const { addToCart, openDrawer } = useCart();
-  const { appInfo } = useAppInfo();
 
   const [product, setProduct] = useState<IProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedVariant, setSelectedVariant] = useState<IProductDetailVariant | null>(null);
   const [qty, setQty] = useState(1);
-
-  useSeoMeta({
-    title: product ? `${product.Name} | ${appInfo?.Name ?? 'Shop'}` : (appInfo?.Name ?? 'Product'),
-    description: product?.Description
-      ? product.Description.slice(0, 160)
-      : `Buy ${product?.Name ?? 'this product'} online at the best price.`,
-    keywords: product
-      ? `${product.Name}, ${product.CategoryName ?? ''}, Class D Amplifier Manufacturer, Audio PCB Assembly India, OEM Audio Solutions, High-Efficiency Audio Amplifiers, Electronics R&D Vellore`
-      : 'Class D Amplifier Manufacturer, Audio PCB Assembly India, OEM Audio Solutions',
-    canonical: productSlug ? `/product/${productSlug}` : '/',
-    ogType: 'product',
-    ogImage:
-      selectedVariant?.Images.find((i) => i.IsPrimary)?.ImageUrl ??
-      selectedVariant?.Images[0]?.ImageUrl ??
-      undefined,
-  });
 
   const fetchDetail = useCallback(async (id: string) => {
     setLoading(true);
@@ -501,22 +483,11 @@ export default function ProductDetailView() {
   const galleryImages = variantImages.length > 0 ? variantImages : productImages;
 
   const inStock = (selectedVariant?.StockQuantity ?? 0) > 0;
-  const schemaPrice = selectedVariant
-    ? selectedVariant.DiscountedPrice > 0 &&
-      selectedVariant.DiscountedPrice < selectedVariant.SellingPrice
-      ? selectedVariant.DiscountedPrice
-      : selectedVariant.SellingPrice
-    : 0;
-  const schemaImage =
-    selectedVariant?.Images.find((i) => i.IsPrimary)?.ImageUrl ??
-    selectedVariant?.Images[0]?.ImageUrl ??
-    '';
 
   return (
     <DashboardContent maxWidth="lg">
       {/* Back button */}
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-        <IconButton onClick={handleBack} size="small">
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>        <IconButton onClick={handleBack} size="small">
           <Iconify icon="solar:arrow-left-linear" />
         </IconButton>
         <Typography
@@ -528,19 +499,6 @@ export default function ProductDetailView() {
           Back to Products
         </Typography>
       </Stack>
-
-      {product && selectedVariant && (
-        <ProductSchema
-          name={product.Name}
-          description={product.Description ?? ''}
-          sku={selectedVariant.SKU}
-          image={schemaImage}
-          brand={appInfo?.Name ?? 'Extreme Amps'}
-          price={schemaPrice}
-          availability={inStock ? 'InStock' : 'OutOfStock'}
-          url={`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.extremeamps.in'}/product/${toProductSlug(product.Name, selectedVariant.Id, product.CategoryName)}`}
-        />
-      )}
 
       {loading ? (
         <DetailSkeleton />
@@ -554,7 +512,7 @@ export default function ProductDetailView() {
           <Grid container spacing={{ xs: 2, md: 5 }}>
             {/* Image gallery */}
             <Grid size={{ xs: 12, md: 5 }}>
-              <ImageGallery images={galleryImages} />
+              <ImageGallery images={galleryImages} productName={product.Name} />
             </Grid>
 
             {/* Product info */}

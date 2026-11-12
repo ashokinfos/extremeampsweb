@@ -1,7 +1,6 @@
 ﻿'use client';
 
 import { toProductSlug } from '@/shared/utils';
-import { useRouter } from 'next/navigation';
 import NextLink from 'next/link';
 
 import Box from '@mui/material/Box';
@@ -33,15 +32,14 @@ function formatINR(amount: number): string {
 // ----------------------------------------------------------------------
 
 export function ProductItem({ product }: { product: ICatalogVariant }) {
-  const router = useRouter();
   const hasDiscount = product.DiscountedPrice > 0 && product.DiscountedPrice < product.SellingPrice;
   const effectivePrice = hasDiscount ? product.DiscountedPrice : product.SellingPrice;
   const productUrl = `/product/${toProductSlug(product.ProductName, product.Id, product.CategoryName)}`;
-
-  const handleNavigate = () => router.push(productUrl);
+  const imgAlt = `${product.ProductName}${product.CategoryName ? ` — ${product.CategoryName}` : ''} | Extreme Amps`;
 
   return (
     <Card
+      component="article"
       sx={{
         position: 'relative',
         display: 'flex',
@@ -75,23 +73,26 @@ export function ProductItem({ product }: { product: ICatalogVariant }) {
         />
       )}
 
-      {/* Square image area — paddingTop: '100%' locks width === height */}
+      {/* Square image area — proper <a> link so Google can crawl product URLs */}
       <Box
+        component={NextLink}
+        href={productUrl}
+        aria-label={`View ${product.ProductName}`}
         sx={{
+          display: 'block',
           position: 'relative',
           width: '100%',
           paddingTop: '100%',
           bgcolor: 'grey.50',
-          cursor: 'pointer',
           overflow: 'hidden',
           borderBottom: '1px solid',
           borderColor: 'divider',
+          textDecoration: 'none',
         }}
-        onClick={handleNavigate}
       >
         <Box
           component="img"
-          alt={product.ProductName}
+          alt={imgAlt}
           src={
             product.ImageUrl
               ? `${product.ImageUrl}?w=300&h=300&fit=crop&auto=format`
@@ -120,22 +121,23 @@ export function ProductItem({ product }: { product: ICatalogVariant }) {
           pb: 1.25,
         }}
       >
-        {/* Product name — 2-line clamp */}
+        {/* Product name — 2-line clamp, proper link for crawlability */}
         <Typography
           variant="body2"
-          component="div"
-          onClick={handleNavigate}
+          component={NextLink}
+          href={productUrl}
           title={product.ProductName}
           sx={{
             fontWeight: 500,
             fontSize: '0.78rem',
             lineHeight: 1.45,
-            cursor: 'pointer',
             display: '-webkit-box',
             WebkitBoxOrient: 'vertical',
             WebkitLineClamp: 2,
             overflow: 'hidden',
             color: 'text.primary',
+            textDecoration: 'none',
+            '&:hover': { color: 'primary.main' },
           }}
         >
           {product.ProductName}

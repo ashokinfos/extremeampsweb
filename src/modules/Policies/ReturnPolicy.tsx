@@ -1,7 +1,6 @@
 ﻿'use client';
 
 import { DashboardContent } from '@/shared/layouts/home';
-import { useAppInfo } from '@/shared/contexts/AppInfoContext';
 import { useSeoMeta } from '@/shared/contexts/hooks/useSeoMeta';
 
 import Box from '@mui/material/Box';
