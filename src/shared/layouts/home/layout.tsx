@@ -68,8 +68,8 @@ export function HomeLayout({
         </Alert>
       ),
       leftArea: (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Logo />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: { xs: -1, md: -2 } }}>
+          <Logo sx={{ width: { xs: 100, sm: 120, md: 140 }, height: { xs: 40, md: 48 }, mb: 0 }} />
         </Box>
       ),
       centerArea: (
@@ -101,6 +101,7 @@ export function HomeLayout({
                 variant="contained"
                 size="small"
                 startIcon={<LoginIcon />}
+                aria-label="Sign in"
                 sx={{
                   bgcolor: 'primary.contrastText',
                   color: 'primary.main',
@@ -156,6 +157,12 @@ export function HomeLayout({
             // Lock --color to white so useScrollOffsetTop can never override
             // the icon/text colour when the user scrolls down.
             '--color': 'var(--palette-primary-contrastText, #fff)',
+            // Override the scroll-offset backdrop so it stays on-brand:
+            // the ::before blur layer uses primary.main at high opacity
+            // instead of the default background.default, preventing washout.
+            '&::before': {
+              backgroundColor: (t: any) => alpha(t.palette.primary.main, 0.92),
+            },
           },
           ...(Array.isArray(slotProps?.header?.sx)
             ? (slotProps?.header?.sx ?? [])
