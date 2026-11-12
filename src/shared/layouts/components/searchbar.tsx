@@ -1,6 +1,8 @@
+'use client';
+
 import type { BoxProps } from '@mui/material/Box';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Iconify } from '@/shared/components/iconify';
 
 import Box from '@mui/material/Box';
@@ -27,11 +29,23 @@ export function Searchbar({ sx, ...other }: BoxProps) {
     setOpen(false);
   }, []);
 
+  // Cmd+K / Ctrl+K shortcut to toggle the overlay
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <ClickAwayListener onClickAway={handleClose}>
       <div>
         {!open && (
-          <IconButton onClick={handleOpen}>
+          <IconButton onClick={handleOpen} aria-label="Open search">
             <Iconify icon="eva:search-fill" />
           </IconButton>
         )}
@@ -64,6 +78,7 @@ export function Searchbar({ sx, ...other }: BoxProps) {
               fullWidth
               disableUnderline
               placeholder="Search…"
+              inputProps={{ 'aria-label': 'Search' }}
               startAdornment={
                 <InputAdornment position="start">
                   <Iconify width={20} icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
@@ -71,9 +86,19 @@ export function Searchbar({ sx, ...other }: BoxProps) {
               }
               sx={{ fontWeight: 'fontWeightBold' }}
             />
-            <Button variant="contained" onClick={handleClose}>
-              Search
-            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleClose}
+                sx={{ borderRadius: 2 }}
+              >
+                Search
+              </Button>
+              <IconButton onClick={handleClose} size="small" aria-label="Close search">
+                <Iconify icon="mingcute:close-line" />
+              </IconButton>
+            </Box>
           </Box>
         </Slide>
       </div>

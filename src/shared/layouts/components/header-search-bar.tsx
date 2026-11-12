@@ -1,8 +1,12 @@
 ﻿'use client';
 
+import { useRef, useState, useEffect } from 'react';
+import { alpha } from '@mui/material/styles';
 import { Iconify } from '@/shared/components/iconify';
 import { useSearch } from '@/shared/contexts/SearchContext';
 
+import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
 import InputBase from '@mui/material/InputBase';
 import InputAdornment from '@mui/material/InputAdornment';
 
@@ -12,20 +16,98 @@ type HeaderSearchBarProps = {
 };
 
 export function HeaderSearchBar({ sx, placeholder = 'Search…' }: HeaderSearchBarProps) {
-  const { query, setQuery, commit } = useSearch();
+  const { query, setQuery, commit, clearSearch } = useSearch();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [focused, setFocused] = useState(false);
+
+  const isMac = typeof navigator !== 'undefined' && /Mac/.test(navigator.platform);
+
+  const handleClear = () => {
+    clearSearch();
+    inputRef.current?.focus();
+  };
+
+  // Cmd+K / Ctrl+K focuses this inline search bar.
+  // Only claims the shortcut when the input element is actually visible in the
+  // layout (i.e. not hidden by display:none). When visible, it also stops
+  // propagation so any co-mounted overlay handler (e.g. Searchbar) does not
+  // fire at the same time.
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        const el = inputRef.current;
+        if (!el) return;
+        // offsetParent is null when the element (or an ancestor) has
+        // display:none — meaning this bar is hidden at the current breakpoint.
+        // In that case, don't claim the shortcut.
+        if (el.offsetParent === null) return;
+        e.preventDefault();
+        e.stopPropagation();
+        el.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <InputBase
+      inputRef={inputRef}
       placeholder={placeholder}
       value={query}
       onChange={(e) => setQuery(e.target.value)}
       onKeyDown={(e) => e.key === 'Enter' && commit()}
-      endAdornment={
-        <InputAdornment position="end" sx={{ cursor: 'pointer' }} onClick={commit}>
-          <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      inputProps={{ 'aria-label': 'Search' }}
+      startAdornment={
+        <InputAdornment position="start" sx={{ cursor: 'pointer' }} onClick={commit}>
+          <Iconify
+            icon="eva:search-fill"
+            sx={{ color: focused ? 'primary.main' : 'text.disabled', transition: 'color 0.2s' }}
+          />
         </InputAdornment>
       }
-      sx={sx}
+      endAdornment={
+        <InputAdornment position="end">
+          {query ? (
+            <IconButton size="small" onClick={handleClear} edge="end" aria-label="Clear search">
+              <Iconify icon="mingcute:close-line" />
+            </IconButton>
+          ) : (
+            <Box
+              component="span"
+              sx={{
+                display: { xs: 'none', sm: 'flex' },
+                alignItems: 'center',
+                px: 0.75,
+                py: 0.25,
+                borderRadius: 0.75,
+                border: '1px solid',
+                borderColor: 'divider',
+                fontSize: '0.65rem',
+                fontFamily: 'monospace',
+                color: 'text.disabled',
+                lineHeight: 1.5,
+                whiteSpace: 'nowrap',
+                userSelect: 'none',
+              }}
+            >
+              {isMac ? '⌘K' : 'Ctrl K'}
+            </Box>
+          )}
+        </InputAdornment>
+      }
+      sx={[
+        ...(Array.isArray(sx) ? sx : [sx]),
+        {
+          transition: 'box-shadow 0.2s, border-color 0.2s',
+          ...(focused && {
+            borderColor: (t: any) => t.palette.primary.main,
+            boxShadow: (t: any) => `0 0 0 3px ${alpha(t.palette.primary.main, 0.15)}`,
+          }),
+        },
+      ]}
     />
   );
 }

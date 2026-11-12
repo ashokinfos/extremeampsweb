@@ -12,8 +12,6 @@ import Typography from '@mui/material/Typography';
 // ----------------------------------------------------------------------
 
 const ContactUs = () => {
-  const { appInfo } = useAppInfo();
-
   return (
     <DashboardContent>
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
@@ -25,16 +23,14 @@ const ContactUs = () => {
           <Iconify icon="eva:pin-outline" width={24} sx={{ mr: 2, flexShrink: 0 }} />
           <Typography>
             <strong>Address:</strong>{' '}
-            {appInfo
-              ? `${appInfo.AddressLine1}${appInfo.AddressLine2 ? `, ${appInfo.AddressLine2}` : ''}, ${appInfo.City}, ${appInfo.State} — ${appInfo.PinCode}`
-              : 'Address information is missing'}
+            No: 941A, Phase-II 32nd Street, Sathuvacheri, Vellore, Tamil Nadu — 632202
           </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Iconify icon="eva:email-outline" width={24} sx={{ mr: 2, flexShrink: 0 }} />
           <Typography>
-            <strong>Email:</strong> <Link href={`mailto:${appInfo?.Email}`}>{appInfo?.Email}</Link>
+            <strong>Email:</strong> <Link href={`mailto:kiruaudios7@gmail.com`}>kiruaudios7@gmail.com</Link>
           </Typography>
         </Box>
 
@@ -42,7 +38,7 @@ const ContactUs = () => {
           <Iconify icon="eva:phone-outline" width={24} sx={{ mr: 2, flexShrink: 0 }} />
           <Typography>
             <strong>Mobile:</strong>{' '}
-            <Link href={`tel:${appInfo?.Phone?.replace(/\s/g, '')}`}>{appInfo?.Phone}</Link>{' '}
+            <Link href={`tel:9092452542`}>9092452542</Link>{' '}
           </Typography>
         </Box>
       </Paper>

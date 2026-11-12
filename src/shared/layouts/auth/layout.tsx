@@ -49,12 +49,7 @@ export function AuthLayout({
           This is an info Alert.
         </Alert>
       ),
-      leftArea: (
-        <>
-          {/** @slot Logo */}
-          <Logo />
-        </>
-      ),
+      centerArea: <Logo sx={{ width: { xs: 200, sm: 240 }, height: 56, mb: 0 }} />,
       rightArea: (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
           {/** @slot Help link */}
@@ -68,12 +63,16 @@ export function AuthLayout({
     return (
       <HeaderSection
         disableElevation
+        disableOffset
         layoutQuery={layoutQuery}
         {...slotProps?.header}
         slots={{ ...headerSlots, ...slotProps?.header?.slots }}
         slotProps={merge(headerSlotProps, slotProps?.header?.slotProps ?? {}) as HeaderSectionProps['slotProps']}
         sx={[
-          { position: { [layoutQuery]: 'fixed' } },
+          (theme) => ({
+            position: { [layoutQuery]: 'fixed' },
+            bgcolor: theme.palette.primary.main,
+          }),
           ...(Array.isArray(slotProps?.header?.sx)
             ? (slotProps?.header?.sx ?? [])
             : [slotProps?.header?.sx]),

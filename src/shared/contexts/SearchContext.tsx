@@ -6,6 +6,7 @@ type SearchContextType = {
   query: string;
   setQuery: (q: string) => void;
   commit: () => void;
+  clearSearch: () => void;
   committed: string;
 };
 
@@ -13,6 +14,7 @@ const SearchContext = createContext<SearchContextType>({
   query: '',
   setQuery: () => {},
   commit: () => {},
+  clearSearch: () => {},
   committed: '',
 });
 
@@ -21,9 +23,13 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   const [committed, setCommitted] = useState('');
 
   const commit = useCallback(() => setCommitted(query), [query]);
+  const clearSearch = useCallback(() => {
+    setQuery('');
+    setCommitted('');
+  }, []);
 
   return (
-    <SearchContext.Provider value={{ query, setQuery, commit, committed }}>
+    <SearchContext.Provider value={{ query, setQuery, commit, clearSearch, committed }}>
       {children}
     </SearchContext.Provider>
   );

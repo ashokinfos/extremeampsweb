@@ -85,42 +85,40 @@ jobs:
           script: |
             set -e
 
-            APP_DIR="${{ env.APP_DIR }}"
-            APP_NAME="${{ env.APP_NAME }}"
             DEPLOY_USER="${{ secrets.CLOUD_SERVER_USERNAME }}"
 
             # Ensure app directory exists
-            sudo mkdir -p "$APP_DIR"
+            sudo mkdir -p "${{ env.APP_DIR }}"
 
             # Stop the app before touching files so Next.js releases
             # route-cache file handles (owned by the PM2 process user)
-            if pm2 describe "$APP_NAME" > /dev/null 2>&1; then
-              pm2 stop "$APP_NAME" || true
+            if pm2 describe "${{ env.APP_NAME }}" > /dev/null 2>&1; then
+              pm2 stop "${{ env.APP_NAME }}" || true
             fi
 
             # Remove old .next — needs sudo as runtime cache files
             # are owned by the user Next.js ran as
-            sudo rm -rf "$APP_DIR/.next"
+            sudo rm -rf "${{ env.APP_DIR }}/.next"
 
             # Unpack artefact (node_modules included — no npm install needed)
-            sudo tar -xzf /tmp/extremeamps-staging-deploy/deploy.tar.gz -C "$APP_DIR"
+            sudo tar -xzf /tmp/extremeamps-staging-deploy/deploy.tar.gz -C "${{ env.APP_DIR }}"
             rm -f /tmp/extremeamps-staging-deploy/deploy.tar.gz
 
             # Fix ownership AFTER extraction so all files are accessible
-            sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
+            sudo chown -R "$DEPLOY_USER:$DEPLOY_USER" "${{ env.APP_DIR }}"
 
             # Place the env file where Next.js expects it at runtime
-            cp "$APP_DIR/${{ env.ENV_FILE }}" "$APP_DIR/.env.production"
+            cp "${{ env.APP_DIR }}/${{ env.ENV_FILE }}" "${{ env.APP_DIR }}/.env.production"
 
             # Update nginx config (validate before reloading to avoid downtime)
-            sudo cp "$APP_DIR/nginx-nextjs.conf" /etc/nginx/sites-available/extremeamps-uat
+            sudo cp "${{ env.APP_DIR }}/nginx-nextjs.conf" /etc/nginx/sites-available/extremeamps-uat
             sudo ln -sf /etc/nginx/sites-available/extremeamps-uat /etc/nginx/sites-enabled/extremeamps-uat
             sudo nginx -t && sudo systemctl reload nginx
 
             # Always do a clean start — delete if exists, then start fresh.
             # Avoids any pm2 describe state-check issues.
-            pm2 delete "$APP_NAME" || true
-            pm2 start "$APP_DIR/ecosystem.config.cjs" --only "$APP_NAME" --env staging
+            pm2 delete "${{ env.APP_NAME }}" || true
+            pm2 start "${{ env.APP_DIR }}/ecosystem.config.cjs" --only "${{ env.APP_NAME }}" --env staging
             pm2 save --force
 
       # ── 10. Local clean-up ───────────────────────────────────────────────────

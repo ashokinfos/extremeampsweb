@@ -14,7 +14,6 @@ import ListItemText from '@mui/material/ListItemText';
 // ----------------------------------------------------------------------
 
 const TermsAndConditions = () => {
-  const { appInfo } = useAppInfo();
   return (
     <DashboardContent>
       <Box py={4}>
@@ -35,7 +34,7 @@ const TermsAndConditions = () => {
             This document is published in accordance with the provisions of Rule 3 (1) of the
             Information Technology (Intermediaries guidelines) Rules, 2011 that require publishing
             the rules and regulations, privacy policy and Terms of Use for access or usage of domain
-            name <a href={`https://${appInfo?.Domain}`}>{`https://${appInfo?.Domain}`}</a>{' '}
+            name <a href="https://www.extremeamps.in">{`www.extremeamps.in`}</a>{' '}
             (&apos;Website&apos;), including the related mobile site and mobile application
             (hereinafter referred to as &apos;Platform&apos;).
           </Typography>
@@ -46,7 +45,7 @@ const TermsAndConditions = () => {
             Platform Ownership
           </Typography>
           <Typography variant="body1" sx={{ mb: 2 }}>
-            The Platform is owned by {appInfo?.Name}, a company incorporated under the Companies
+            The Platform is owned by Extreme Amps, a company incorporated under the Companies
             Act, 1956 with its registered office at 941A, Phase-II, 32nd Street, Vellore
             Sathuvacheri, Vellore, India (hereinafter referred to as &apos;Platform Owner&apos;,
             &apos;we&apos;, &apos;us&apos;, &apos;our&apos;).
