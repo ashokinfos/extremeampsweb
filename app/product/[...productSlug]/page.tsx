@@ -3,6 +3,7 @@ import { HomeLayout } from '@/shared/layouts/home';
 import ProductDetailView from '@/modules/product-catalog/views/product-detail-view';
 import ProductSchema from '@/shared/components/ProductSchema';
 import { idFromProductSlug } from '@/shared/utils/productSlug';
+import { serverFetchHeaders } from '@/shared/utils/serverFetch';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.extremeamps.in';
 
@@ -18,6 +19,7 @@ if (!API_BASE) {
 async function fetchProduct(variantId: string) {
   try {
     const res = await fetch(`${API_BASE}/product/detail/variant/${variantId}`, {
+      headers: serverFetchHeaders(),
       next: { revalidate: 3600 },
     });
 
