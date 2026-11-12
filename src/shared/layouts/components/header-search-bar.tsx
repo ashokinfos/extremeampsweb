@@ -59,6 +59,7 @@ export function HeaderSearchBar({ sx, placeholder = 'Search…' }: HeaderSearchB
       onKeyDown={(e) => e.key === 'Enter' && commit()}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
+      inputProps={{ 'aria-label': 'Search' }}
       startAdornment={
         <InputAdornment position="start" sx={{ cursor: 'pointer' }} onClick={commit}>
           <Iconify

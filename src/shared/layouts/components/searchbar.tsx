@@ -78,6 +78,7 @@ export function Searchbar({ sx, ...other }: BoxProps) {
               fullWidth
               disableUnderline
               placeholder="Search…"
+              inputProps={{ 'aria-label': 'Search' }}
               startAdornment={
                 <InputAdornment position="start">
                   <Iconify width={20} icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
