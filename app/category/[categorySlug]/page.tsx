@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { HomeLayout } from '@/shared/layouts/home';
 
-import { CategoryView } from './CategoryView';
+import { CategoryView } from '../../../src/modules/product-catalog/components/CategoryView';
 
 // ----------------------------------------------------------------------
 
