@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 
 import { HomeLayout } from '@/shared/layouts/home';
 import { idFromCategorySlug } from '@/shared/utils';
@@ -76,9 +75,10 @@ export default async function CategoryPage({ params }: Props) {
 
   return (
     <HomeLayout>
-      <Script
+      <script
         id="breadcrumb-jsonld"
         type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <CategoryView categoryName={categoryName} />

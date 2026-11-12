@@ -6,7 +6,6 @@ import { useParams } from 'next/navigation';
 
 import Box from '@mui/material/Box';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
-import Collapse from '@mui/material/Collapse';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
@@ -50,6 +49,9 @@ function CategorySidebar({
   activeCategoryId: string;
   loading: boolean;
 }) {
+  // "All" is active when activeCategoryId is empty (no specific category selected)
+  const allActive = !activeCategoryId;
+
   return (
     <Box>
       <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -61,9 +63,9 @@ function CategorySidebar({
       <Divider />
       <List dense disablePadding>
         <ListItemButton
-          key={1}
           component={NextLink}
-          href={`/`}
+          href="/"
+          selected={allActive}
           sx={{
             px: 2,
             py: 0.75,
@@ -78,10 +80,10 @@ function CategorySidebar({
           }}
         >
           <ListItemText
-            primary="All Products"
+            primary="All"
             primaryTypographyProps={{
               variant: 'body2',
-              fontWeight:  400,
+              fontWeight: allActive ? 700 : 400,
               noWrap: true,
             }}
           />
