@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 
 import { HomeLayout } from '@/shared/layouts/home';
-import { idFromCategorySlug } from '@/shared/utils';
 
 import { CategoryView } from './CategoryView';
 
@@ -74,14 +73,15 @@ export default async function CategoryPage({ params }: Props) {
   };
 
   return (
-    <HomeLayout>
+    <>
       <script
         id="breadcrumb-jsonld"
         type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <CategoryView categoryName={categoryName} />
-    </HomeLayout>
+      <HomeLayout>
+        <CategoryView categoryName={categoryName} />
+      </HomeLayout>
+    </>
   );
 }
