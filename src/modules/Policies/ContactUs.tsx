@@ -2,7 +2,6 @@
 
 import { Iconify } from '@/shared/components/iconify';
 import { DashboardContent } from '@/shared/layouts/home';
-import { useAppInfo } from '@/shared/contexts/AppInfoContext';
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';

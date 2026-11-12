@@ -1,7 +1,6 @@
 ﻿'use client';
 
 import { DashboardContent } from '@/shared/layouts/home';
-import { useAppInfo } from '@/shared/contexts/AppInfoContext';
 
 import Card from '@mui/material/Card';
 import Divider from '@mui/material/Divider';
