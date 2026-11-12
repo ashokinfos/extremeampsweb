@@ -25,3 +25,11 @@ export const idFromProductSlug = (slug: string | string[]): string => {
   const parts = fullSlug.split('--');
   return parts[parts.length - 1];
 };
+
+export const toCategorySlug = (name: string, id: string): string =>
+  `${slugify(name)}--${id}`;
+
+export const idFromCategorySlug = (slug: string): string => {
+  const parts = slug.split('--');
+  return parts[parts.length - 1];
+};

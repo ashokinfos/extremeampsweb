@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 
 import { BannerSlider } from '../components/banner-slider';
 import { catalogService } from '../services/catalogService';
-import { ProductItem, ProductSort, ProductFilters } from '../components';
+import { ProductItem, ProductSort, ProductFilters, CategoryChips } from '../components';
 
 import type { FiltersProps } from '../components';
 import type { IBanner, ICatalogFilter, ICatalogVariant } from '../types/productTypes';
@@ -95,6 +95,8 @@ export default function ProductsView() {
   return (
     <DashboardContent maxWidth={false}>
       {page == 1 && <BannerSlider banners={banners} />}
+
+      <CategoryChips />
 
       <Box
         sx={{
