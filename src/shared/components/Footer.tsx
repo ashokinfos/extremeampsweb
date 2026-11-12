@@ -28,7 +28,7 @@ const AppFooter = () => {
       <Typography variant="body2">
         © {new Date().getFullYear()} {companyName}. All rights reserved.
       </Typography>
-      {/* <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+      <Box sx={{ mt: 1, display: 'none', flexWrap: 'wrap', justifyContent: 'center' }}>
         {[
           { href: '/terms-and-conditions', label: 'Terms & Conditions' },
           { href: '/refund-policy', label: 'Refund Policy' },
@@ -48,7 +48,7 @@ const AppFooter = () => {
             {link.label}
           </Button>
         ))}
-      </Box> */}
+      </Box>
     </Box>
   );
 };

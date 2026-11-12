@@ -16,14 +16,10 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 // ----------------------------------------------------------------------
 
 const PrivacyPolicy = () => {
-  const { appInfo } = useAppInfo();
-
-  const companyName = appInfo?.Name ?? 'GenNest Infra Tech Services';
-  const websiteUrl = appInfo?.Domain ? `https://${appInfo.Domain}` : 'https://www.gennest.in';
 
   useSeoMeta({
-    title: `Privacy Policy | ${companyName}`,
-    description: `Read the ${companyName} Privacy Policy to understand how we collect, use, and protect your personal data.`,
+    title: `Privacy Policy | Extreme Amps`,
+    description: `Read the Extreme Amps Privacy Policy to understand how we collect, use, and protect your personal data.`,
     canonical: '/privacy-policy',
     noIndex: true,
   });
@@ -33,9 +29,11 @@ const PrivacyPolicy = () => {
       title: 'Introduction',
       content: (
         <>
-          This Privacy Policy describes how {companyName} and its affiliates (collectively &quot;
-          {companyName}, we, our, us&quot;) collect, use, share, protect or otherwise process your
-          information/ personal data through our website <a href={websiteUrl}>{websiteUrl}</a>{' '}
+          This Privacy Policy describes how Extreme Amps and its affiliates (collectively &quot;
+          Extreme Amps, we, our, us&quot;) collect, use, share, protect or otherwise process your
+          information/ personal data through our website <a href="https://www.extremeamps.in" target="_blank" rel="noopener noreferrer">
+            www.extremeamps.in
+          </a>{" "}
           (hereinafter referred to as Platform).
         </>
       ),

@@ -11,15 +11,10 @@ import Typography from '@mui/material/Typography';
 // ----------------------------------------------------------------------
 
 const ReturnPolicy = () => {
-  const { appInfo } = useAppInfo();
-
-  const companyName = appInfo?.Name ?? 'GenNest Infra Tech Services';
-  const email = appInfo?.Email ?? 'ashokinfos@gmail.com';
-  const phone = appInfo?.Phone ?? '+91 82203 02401';
 
   useSeoMeta({
-    title: `Return & Replacement Policy | ${companyName}`,
-    description: `Understand ${companyName} 7-day return and replacement policy — eligibility, how to initiate a return, and replacement timelines.`,
+    title: `Return & Replacement Policy | Extreme Amps`,
+    description: `Understand Extreme Amps 7-day return and replacement policy — eligibility, how to initiate a return, and replacement timelines.`,
     canonical: '/return-policy',
     noIndex: true,
   });
@@ -33,7 +28,7 @@ const ReturnPolicy = () => {
 
         <Box mb={4}>
           <Typography variant="h6" gutterBottom>
-            At {companyName}
+            At Extreme Amps
           </Typography>
           <Typography variant="body1">
             We are committed to providing our customers with a seamless and satisfying shopping
@@ -64,12 +59,12 @@ const ReturnPolicy = () => {
           </Typography>
           <Typography variant="body1" sx={{ mb: 1 }}>
             Contact our Customer Support team via{' '}
-            <Link href={`mailto:${email}`} color="primary">
-              {email}
+            <Link href={`mailto:kiruaudios7@gmail.com`} color="primary">
+              kiruaudios7@gmail.com
             </Link>{' '}
             /{' '}
-            <Link href={`tel:${phone.replace(/\s/g, '')}`} color="primary">
-              {phone}
+            <Link href={`tel:9092452542`} color="primary">
+              9092452542
             </Link>{' '}
             with your order number and reason for return.
           </Typography>
@@ -128,10 +123,10 @@ const ReturnPolicy = () => {
             Contact Us:
           </Typography>
           <Typography variant="body2">
-            📧 <Link href={`mailto:${email}`}>{email}</Link>
+            📧 <Link href={`mailto:kiruaudios7@gmail.com`}>kiruaudios7@gmail.com</Link>
           </Typography>
           <Typography variant="body2">
-            📞 <Link href={`tel:${phone.replace(/\s/g, '')}`}>{phone}</Link>
+            📞 <Link href={`tel:9092452542`}>9092452542</Link>
           </Typography>
         </Box>
       </Box>

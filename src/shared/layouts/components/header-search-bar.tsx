@@ -16,14 +16,14 @@ type HeaderSearchBarProps = {
 };
 
 export function HeaderSearchBar({ sx, placeholder = 'Search…' }: HeaderSearchBarProps) {
-  const { query, setQuery, commit } = useSearch();
+  const { query, setQuery, commit, clearSearch } = useSearch();
   const inputRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
 
   const isMac = typeof navigator !== 'undefined' && /Mac/.test(navigator.platform);
 
   const handleClear = () => {
-    setQuery('');
+    clearSearch();
     inputRef.current?.focus();
   };
 
