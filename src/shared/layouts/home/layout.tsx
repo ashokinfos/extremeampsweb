@@ -15,9 +15,8 @@ import { CartDrawer } from '@/modules/product-catalog/components/cart-drawer';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 import LoginIcon from '@mui/icons-material/Login';
-import IconButton from '@mui/material/IconButton';
 
 import { homeLayoutVars } from './css-vars';
 import { layoutClasses } from '../core/classes';
@@ -69,8 +68,8 @@ export function HomeLayout({
         </Alert>
       ),
       leftArea: (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Logo />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: { xs: -1, md: -2 } }}>
+          <Logo sx={{ width: { xs: 100, sm: 120, md: 140 }, height: { xs: 40, md: 48 }, mb: 0 }} />
         </Box>
       ),
       centerArea: (
@@ -78,16 +77,16 @@ export function HomeLayout({
           sx={{
             display: { xs: 'none', md: 'flex' },
             px: 2,
-            height: 50,
-            width: { xs: 1, md: 0.7 },
-            borderRadius: 1,
+            height: 44,
+            width: { xs: 1, md: 0.65 },
+            borderRadius: 2,
             border: (t: any) => `1px solid ${t.palette.divider}`,
             bgcolor: 'background.paper',
           }}
         />
       ),
       rightArea: (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, md: 1.5 } }}>
           {user ? (
             <>
               <CartIcon totalItems={totalItems} onClick={openDrawer} />
@@ -99,47 +98,54 @@ export function HomeLayout({
               <Button
                 component={RouterLink}
                 href="/sign-in"
-                variant="outlined"
-                color="inherit"
+                variant="contained"
                 size="small"
-                sx={{ display: { xs: 'none', sm: 'flex' }, borderColor: 'primary.contrastText' }}
-              >
-                Sign In
-              </Button>
-              <IconButton
-                component={RouterLink}
-                href="/sign-in"
-                color="inherit"
-                size="small"
+                startIcon={<LoginIcon />}
                 aria-label="Sign in"
-                sx={{ display: { xs: 'flex', sm: 'none' } }}
+                sx={{
+                  bgcolor: 'primary.contrastText',
+                  color: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.contrastText', opacity: 0.92 },
+                  '& .MuiButton-startIcon': { mr: { xs: 0, sm: 0.5 } },
+                  '& .MuiButton-endIcon': { display: 'none' },
+                  px: { xs: 1, sm: 1.5 },
+                  minWidth: { xs: 0, sm: 64 },
+                }}
               >
-                <LoginIcon fontSize="small" />
-              </IconButton>
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Sign In</Box>
+              </Button>
             </>
           )}
         </Box>
       ),
       bottomArea: (
-        <HeaderSearchBar
+        <Box
           sx={{
             display: { xs: 'flex', md: 'none' },
             px: 2,
-            margin: '0px auto',
-            height: 50,
-            width: { xs: 0.9, md: 0.7 },
-            borderRadius: 1,
-            border: (t: any) => `1px solid ${t.palette.divider}`,
-            bgcolor: 'background.paper',
+            pb: 1.5,
+            width: '100%',
+            borderTop: (t: any) => `1px solid ${alpha(t.palette.primary.contrastText, 0.15)}`,
           }}
-        />
+        >
+          <HeaderSearchBar
+            sx={{
+              width: 1,
+              height: 40,
+              px: 1.5,
+              borderRadius: 2,
+              border: (t: any) => `1px solid ${t.palette.divider}`,
+              bgcolor: 'background.paper',
+            }}
+          />
+        </Box>
       ),
     };
 
     return (
       <HeaderSection
         disableElevation
-        disableOffset
+        disableOffset={false}
         layoutQuery={layoutQuery}
         {...slotProps?.header}
         slots={{ ...headerSlots, ...slotProps?.header?.slots }}
@@ -151,6 +157,12 @@ export function HomeLayout({
             // Lock --color to white so useScrollOffsetTop can never override
             // the icon/text colour when the user scrolls down.
             '--color': 'var(--palette-primary-contrastText, #fff)',
+            // Override the scroll-offset backdrop so it stays on-brand:
+            // the ::before blur layer uses primary.main at high opacity
+            // instead of the default background.default, preventing washout.
+            '&::before': {
+              backgroundColor: (t: any) => alpha(t.palette.primary.main, 0.92),
+            },
           },
           ...(Array.isArray(slotProps?.header?.sx)
             ? (slotProps?.header?.sx ?? [])
