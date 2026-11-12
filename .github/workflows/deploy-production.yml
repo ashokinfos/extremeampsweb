@@ -105,8 +105,6 @@ jobs:
             # .env.production is already correctly named — no rename needed
 
             # Update nginx config (validate before reloading to avoid downtime)
-            sudo cp "${{ env.APP_DIR }}/nginx-nextjs.conf" /etc/nginx/sites-available/extremeamps
-            sudo ln -sf /etc/nginx/sites-available/extremeamps /etc/nginx/sites-enabled/extremeamps
             sudo nginx -t && sudo systemctl reload nginx
 
             # Always do a clean start — delete if exists, then start fresh.
