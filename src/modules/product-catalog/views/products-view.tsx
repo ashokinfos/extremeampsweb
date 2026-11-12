@@ -38,7 +38,7 @@ export default function ProductsView() {
   const [filters, setFilters] = useState<FiltersProps>(defaultFilters);
   const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]);
 
-  const { committed, setQuery, commit } = useSearch();
+  const { committed, clearSearch } = useSearch();
   const { appInfo } = useAppInfo();
 
   useSeoMeta({
@@ -100,11 +100,9 @@ export default function ProductsView() {
 
   const handleResetFilter = useCallback(() => {
     setPage(1);
-    setQuery('');
-    commit();
+    clearSearch();
     setFilters(defaultFilters);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [clearSearch]);
 
   const canReset = JSON.stringify(filters) !== JSON.stringify(defaultFilters);
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);

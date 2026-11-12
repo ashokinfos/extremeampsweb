@@ -11,8 +11,6 @@ import CardContent from '@mui/material/CardContent';
 // ----------------------------------------------------------------------
 
 const RefundPolicy = () => {
-  const { appInfo } = useAppInfo();
-
   return (
     <DashboardContent>
       <Card variant="outlined" sx={{ mt: 4, p: 2 }}>
@@ -21,7 +19,7 @@ const RefundPolicy = () => {
             Refund Policy
           </Typography>
           <Typography variant="body1" sx={{ mb: 2 }}>
-            At {appInfo?.Name}, customer satisfaction is our top priority. If you&apos;ve returned
+            At Extreme Amps, customer satisfaction is our top priority. If you&apos;ve returned
             an item, we will send you a confirmation within 2–3 business days after the return has
             been received and thoroughly inspected by our team.
           </Typography>
@@ -59,7 +57,7 @@ const RefundPolicy = () => {
             approved return and you have not yet received your refund, please reach out to our
             customer support team at{' '}
             <Typography component="span" color="primary">
-              {appInfo?.Email}
+              kiruaudios7@gmail.com
             </Typography>{' '}
             for assistance.
           </Typography>
