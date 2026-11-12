@@ -52,8 +52,10 @@ export default async function CategoryPage({ params }: Props) {
   const categoryName = nameFromSlug(categorySlug);
   const canonical = `${SITE_URL}/category/${categorySlug}`;
 
-  // JSON-LD BreadcrumbList for Google rich results
-  const breadcrumbJsonLd = {
+  // JSON-LD BreadcrumbList — passed as a plain string so CategoryView
+  // can render it via dangerouslySetInnerHTML without crossing the RSC boundary
+  // with a DOM element (which can cause hydration errors on client navigation).
+  const breadcrumbJsonLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
@@ -70,18 +72,11 @@ export default async function CategoryPage({ params }: Props) {
         item: canonical,
       },
     ],
-  };
+  });
 
   return (
-    <>
-      <script
-        id="breadcrumb-jsonld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
-      <HomeLayout>
-        <CategoryView categoryName={categoryName} />
-      </HomeLayout>
-    </>
+    <HomeLayout>
+      <CategoryView categoryName={categoryName} breadcrumbJsonLd={breadcrumbJsonLd} />
+    </HomeLayout>
   );
 }
