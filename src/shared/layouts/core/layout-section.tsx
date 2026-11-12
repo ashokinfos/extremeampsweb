@@ -1,3 +1,5 @@
+'use client';
+
 import type { Theme, SxProps, CSSObject } from '@mui/material/styles';
 
 import { mergeClasses } from 'minimal-shared/utils';

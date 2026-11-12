@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { toProductSlug, toCategorySlug } from '@/shared/utils/productSlug';
+import { serverFetchHeaders } from '@/shared/utils/serverFetch';
 
 const API_BASE = process.env.API_BASE_URL;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.extremeamps.in';
@@ -12,7 +13,7 @@ async function fetchAllVariants(): Promise<any[]> {
   try {
     const res = await fetch(`${API_BASE}/catalog`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: serverFetchHeaders(),
       body: JSON.stringify({ Page: 1, PageSize: 1000 }),
       next: { revalidate: 3600 },
     });
@@ -27,6 +28,7 @@ async function fetchAllVariants(): Promise<any[]> {
 async function fetchAllCategories(): Promise<any[]> {
   try {
     const res = await fetch(`${API_BASE}/category`, {
+      headers: serverFetchHeaders(),
       next: { revalidate: 3600 },
     });
     if (!res.ok) return [];
