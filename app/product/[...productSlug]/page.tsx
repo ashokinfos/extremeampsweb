@@ -63,26 +63,49 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     undefined;
 
   const canonical = `${SITE_URL}/product/${fullPath}`;
+
+  // Strip HTML tags and trim to 160 chars for meta description
   const rawDesc = product.Description
-    ? product.Description.replace(/<[^>]+>/g, '').slice(0, 160)
-    : `Buy ${product.Name} online at the best price.`;
+    ? product.Description.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+    : '';
+  const metaDesc = rawDesc
+    ? rawDesc.slice(0, 155) + (rawDesc.length > 155 ? '…' : '')
+    : `Buy ${product.Name} online from Extreme Amps — Class D amplifier manufacturer in Vellore, India.`;
+
+  const hasDiscount =
+    selectedVariant?.DiscountedPrice > 0 &&
+    selectedVariant?.DiscountedPrice < selectedVariant?.SellingPrice;
+  const price = hasDiscount ? selectedVariant.DiscountedPrice : selectedVariant?.SellingPrice ?? 0;
+
+  const keywords = [
+    product.Name,
+    product.CategoryName,
+    'Class D Amplifier Manufacturer India',
+    'OEM Audio PCB Assembly',
+    'buy amplifier board India',
+    'Extreme Amps',
+    selectedVariant?.SKU,
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   return {
     title: product.Name,
-    description: rawDesc,
-    keywords: `${product.Name}, ${product.CategoryName ?? ''}, Class D Amplifier Manufacturer`,
+    description: metaDesc,
+    keywords,
     alternates: { canonical },
     openGraph: {
-      title: product.Name,
-      description: rawDesc,
+      title: `${product.Name} | Extreme Amps`,
+      description: metaDesc,
       url: canonical,
       type: 'website',
-      images: image ? [{ url: image }] : [],
+      siteName: 'Extreme Amps',
+      images: image ? [{ url: image, alt: product.Name }] : [],
     },
     twitter: {
       card: 'summary_large_image',
-      title: product.Name,
-      description: rawDesc,
+      title: `${product.Name} | Extreme Amps`,
+      description: metaDesc,
       images: image ? [image] : [],
     },
   };
@@ -116,7 +139,9 @@ export default async function ProductPage({ params }: Props) {
     '';
 
   const canonicalUrl = `${SITE_URL}/product/${fullPath}`;
-  const rawDesc = product?.Description ? product.Description.replace(/<[^>]+>/g, '') : '';
+  const rawDesc = product?.Description ? product.Description.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() : '';
+  // Price valid until end of next year — gives Google a reasonable expiry without manual maintenance
+  const priceValidUntil = `${new Date().getFullYear() + 1}-12-31`;
 
   return (
     <HomeLayout>
@@ -131,6 +156,8 @@ export default async function ProductPage({ params }: Props) {
             price={price}
             availability={inStock ? 'InStock' : 'OutOfStock'}
             url={canonicalUrl}
+            category={product.CategoryName ?? undefined}
+            priceValidUntil={priceValidUntil}
           />
           <script
             type="application/ld+json"
