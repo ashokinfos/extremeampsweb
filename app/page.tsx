@@ -106,11 +106,11 @@ export default async function HomePage() {
         {/*
           HomeHero is a client component — MUI sx function props live there.
           Plain serializable props (Id, Name, slug strings) are passed from server.
-        */}
-        <HomeHero categories={categoryItems} />
+        */}       
 
         {/* Client-side product grid — unchanged */}
         <ProductsView />
+        <HomeHero categories={categoryItems} />
       </HomeLayout>
     </>
   );

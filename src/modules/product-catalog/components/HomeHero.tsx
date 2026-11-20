@@ -17,16 +17,12 @@ interface HomeHeroProps {
   categories: Category[];
 }
 
-/**
- * Client component wrapper for the homepage hero section.
- * MUI sx function props require a client component boundary.
- */
 export function HomeHero({ categories }: HomeHeroProps) {
   return (
     <Box
       component="section"
       aria-label="Hero"
-      sx={{ px: { xs: 2, sm: 3, lg: 4 }, pt: { xs: 3, md: 4 }, pb: { xs: 1, md: 2 } }}
+      sx={{ px: { xs: 2, sm: 3, lg: 3 }, pt: { xs: 3, md: 1 }, pb: { xs: 1, md: 2 },alignItems: 'center', display: 'flex', flexDirection: 'column', textAlign: 'center' }}
     >
       <Typography
         component="h1"
@@ -38,10 +34,9 @@ export function HomeHero({ categories }: HomeHeroProps) {
       <Typography
         variant="body1"
         color="text.secondary"
-        sx={{ mb: 2, maxWidth: 700 }}
+        sx={{ mb: 2, maxWidth: "90%" }}
       >
-        Extreme Amps manufactures high-efficiency Class D amplifier boards, 5.1 home theater
-        kits, DSP audio decoders, and OEM audio PCB assemblies in Vellore, Tamil Nadu, India.
+        Extreme Amps manufactures high-efficiency Class D amplifier boards, 5.1 home theater kits, DSP audio decoders, and OEM audio PCB assemblies in Vellore, Tamil Nadu, India.
         Shop direct from the manufacturer — genuine products, competitive prices, fast shipping.
       </Typography>
 
