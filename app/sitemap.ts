@@ -17,12 +17,12 @@ const PAGE_SIZE = 500;
 
 const staticUrls: MetadataRoute.Sitemap = [
   { url: SITE_URL, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
-  { url: `${SITE_URL}/contact-us`, changeFrequency: 'monthly', priority: 0.5 },
-  { url: `${SITE_URL}/terms-and-conditions`, changeFrequency: 'yearly', priority: 0.3 },
-  { url: `${SITE_URL}/privacy-policy`, changeFrequency: 'yearly', priority: 0.3 },
-  { url: `${SITE_URL}/refund-policy`, changeFrequency: 'yearly', priority: 0.3 },
-  { url: `${SITE_URL}/return-policy`, changeFrequency: 'yearly', priority: 0.3 },
-  { url: `${SITE_URL}/shipping-policy`, changeFrequency: 'yearly', priority: 0.3 },
+  { url: `${SITE_URL}/contact-us`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${SITE_URL}/terms-and-conditions`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+  { url: `${SITE_URL}/privacy-policy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+  { url: `${SITE_URL}/refund-policy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+  { url: `${SITE_URL}/return-policy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+  { url: `${SITE_URL}/shipping-policy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
 ];
 
 // ----------------------------------------------------------------------
@@ -92,18 +92,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   }));
-
-  const staticUrls: MetadataRoute.Sitemap = [
-    { url: SITE_URL, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
-    { url: `${SITE_URL}/contact-us`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${SITE_URL}/terms-and-conditions`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${SITE_URL}/privacy-policy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${SITE_URL}/refund-policy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${SITE_URL}/return-policy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${SITE_URL}/shipping-policy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
-  ];
-
-  
 
   return [...staticUrls, ...categoryUrls, ...productUrls];
 }
