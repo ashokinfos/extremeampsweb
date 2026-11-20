@@ -39,10 +39,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+type HomePageProps = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams;
+  const search = typeof params.search === 'string' ? params.search : '';
+
   return (
     <HomeLayout>
-      <ProductsView />
+      <ProductsView initialSearch={search} />
     </HomeLayout>
   );
 }

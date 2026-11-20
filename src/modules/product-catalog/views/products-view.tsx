@@ -26,7 +26,7 @@ const defaultFilters: FiltersProps = {
   maxPrice: '',
 };
 
-export default function ProductsView() {
+export default function ProductsView({ initialSearch = '' }: { initialSearch?: string }) {
   const [sortBy, setSortBy] = useState('featured');
   const [products, setProducts] = useState<ICatalogVariant[]>([]);
   const [banners, setBanners] = useState<IBanner[]>([]);
@@ -42,6 +42,11 @@ export default function ProductsView() {
     setPage(1);
     setFilters((prev) => ({ ...prev, search: committed }));
   }, [committed]);
+
+  useEffect(() => {
+    setPage(1);
+    setFilters((prev) => ({ ...prev, search: initialSearch }));
+  }, [initialSearch]);
 
   useEffect(() => {
     catalogService.getCategories().then((cats) => {
@@ -167,6 +172,26 @@ export default function ProductsView() {
           sx={{ mt: 8, mx: 'auto' }}
         />
       )}
+
+      <Box
+        component="section"
+        sx={{
+          maxWidth: "lg",
+          mx: 'auto',
+          mt: 5,
+          mb: 1,
+          textAlign: 'center',
+        }}
+      >
+        <Typography component="h1" variant="h4" sx={{ mb: 2, fontWeight: 700 }}>
+          Class D Amplifier Boards &amp; Audio Modules
+        </Typography>
+        <Typography component="p" variant="body1" color="text.secondary">
+          Extreme Amps manufactures high-efficiency Class D amplifier boards, 5.1 home theater kits,
+          DSP audio decoders, and OEM audio PCB assemblies in Vellore, Tamil Nadu, India. Shop direct
+          from the manufacturer — genuine products, competitive prices, fast shipping.
+        </Typography>
+      </Box>
     </DashboardContent>
   );
 }

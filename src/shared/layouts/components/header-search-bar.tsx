@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useRef, useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { alpha } from '@mui/material/styles';
 import { Iconify } from '@/shared/components/iconify';
 import { useSearch } from '@/shared/contexts/SearchContext';
@@ -17,14 +18,29 @@ type HeaderSearchBarProps = {
 
 export function HeaderSearchBar({ sx, placeholder = 'Search…' }: HeaderSearchBarProps) {
   const { query, setQuery, commit, clearSearch } = useSearch();
+  const pathname = usePathname();
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
 
   const isMac = typeof navigator !== 'undefined' && /Mac/.test(navigator.platform);
 
+  useEffect(() => {
+    const search = new URLSearchParams(window.location.search).get('search');
+    if (search) setQuery(search);
+  }, [setQuery]);
+
   const handleClear = () => {
     clearSearch();
     inputRef.current?.focus();
+  };
+
+  const submitSearch = () => {
+    commit();
+    if (pathname.startsWith('/category/')) {
+      const search = query.trim();
+      router.push(search ? `/?search=${encodeURIComponent(search)}` : '/');
+    }
   };
 
   // Cmd+K / Ctrl+K focuses this inline search bar.
@@ -56,12 +72,12 @@ export function HeaderSearchBar({ sx, placeholder = 'Search…' }: HeaderSearchB
       placeholder={placeholder}
       value={query}
       onChange={(e) => setQuery(e.target.value)}
-      onKeyDown={(e) => e.key === 'Enter' && commit()}
+      onKeyDown={(e) => e.key === 'Enter' && submitSearch()}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       inputProps={{ 'aria-label': 'Search' }}
       startAdornment={
-        <InputAdornment position="start" sx={{ cursor: 'pointer' }} onClick={commit}>
+        <InputAdornment position="start" sx={{ cursor: 'pointer' }} onClick={submitSearch}>
           <Iconify
             icon="eva:search-fill"
             sx={{ color: focused ? 'primary.main' : 'text.disabled', transition: 'color 0.2s' }}
