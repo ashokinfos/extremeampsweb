@@ -1,22 +1,23 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+
 import { HomeLayout } from '@/shared/layouts/home';
 import ProductDetailView from '@/modules/product-catalog/views/product-detail-view';
 import ProductSchema from '@/shared/components/ProductSchema';
-import { idFromProductSlug } from '@/shared/utils/productSlug';
+import { idFromProductSlug, toCategorySlug } from '@/shared/utils/productSlug';
 import { serverFetchHeaders } from '@/shared/utils/serverFetch';
+
+// ----------------------------------------------------------------------
+
+export const revalidate = 3600;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.extremeamps.in';
 
-// Server-side API base — must be set via environment variable.
-const API_BASE =
-  process.env.API_INTERNAL_BASE_URL ??
-  process.env.API_BASE_URL;
-
-if (!API_BASE) {
-  throw new Error('API_BASE_URL environment variable is not set');
-}
+// Server-side API base — prefer internal URL for server-to-server calls
+const API_BASE = process.env.API_INTERNAL_BASE_URL ?? process.env.API_BASE_URL;
 
 async function fetchProduct(variantId: string) {
+  if (!API_BASE) return null;
   try {
     const res = await fetch(`${API_BASE}/product/detail/variant/${variantId}`, {
       headers: serverFetchHeaders(),
@@ -45,28 +46,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const variantId = idFromProductSlug(fullPath);
   const result = await fetchProduct(variantId);
 
-  if (!result || result.notFound) {
+  // API/network error — keep indexable so the URL isn't de-indexed on a transient failure
+  if (!result) {
+    return { title: 'Product', robots: { index: true, follow: true } };
+  }
+
+  // Product not found — explicitly de-index
+  if (result.notFound) {
     return {
-      title: 'Product',
-      robots: { index: result?.notFound ? false : true, follow: true },
+      title: 'Product Not Found',
+      robots: { index: false, follow: false },
     };
   }
 
   const product = result;
 
   const selectedVariant =
-    product.Variants?.find((v: any) => v.Id === variantId) ??
-    product.Variants?.find((v: any) => v.IsDefault) ??
+    product.Variants?.find((v: { Id: string }) => v.Id === variantId) ??
+    product.Variants?.find((v: { IsDefault: boolean }) => v.IsDefault) ??
     product.Variants?.[0];
 
   const image =
-    selectedVariant?.Images?.find((i: any) => i.IsPrimary)?.ImageUrl ??
+    selectedVariant?.Images?.find((i: { IsPrimary: boolean }) => i.IsPrimary)?.ImageUrl ??
     selectedVariant?.Images?.[0]?.ImageUrl ??
     undefined;
 
   const canonical = `${SITE_URL}/product/${fullPath}`;
 
-  // Strip HTML tags and trim to 160 chars for meta description
+  // Strip HTML tags and trim to 155 chars for meta description
   const rawDesc = product.Description
     ? product.Description.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
     : '';
@@ -119,11 +126,16 @@ export default async function ProductPage({ params }: Props) {
   const variantId = idFromProductSlug(fullPath);
   const result = await fetchProduct(variantId);
 
-  const product = result && !result.notFound ? result : null;
+  // Trigger Next.js 404 page for deleted/invalid products
+  if (result?.notFound) {
+    notFound();
+  }
+
+  const product = result ?? null;
 
   const selectedVariant = product
-    ? (product.Variants?.find((v: any) => v.Id === variantId) ??
-      product.Variants?.find((v: any) => v.IsDefault) ??
+    ? (product.Variants?.find((v: { Id: string }) => v.Id === variantId) ??
+      product.Variants?.find((v: { IsDefault: boolean }) => v.IsDefault) ??
       product.Variants?.[0])
     : null;
 
@@ -136,19 +148,56 @@ export default async function ProductPage({ params }: Props) {
 
   const inStock = (selectedVariant?.StockQuantity ?? 0) > 0;
   const image =
-    selectedVariant?.Images?.find((i: any) => i.IsPrimary)?.ImageUrl ??
+    selectedVariant?.Images?.find((i: { IsPrimary: boolean }) => i.IsPrimary)?.ImageUrl ??
     selectedVariant?.Images?.[0]?.ImageUrl ??
     '';
 
   const canonicalUrl = `${SITE_URL}/product/${fullPath}`;
-  const rawDesc = product?.Description ? product.Description.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() : '';
+  const rawDesc = product?.Description
+    ? product.Description.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+    : '';
   // Price valid until end of next year — gives Google a reasonable expiry without manual maintenance
   const priceValidUntil = `${new Date().getFullYear() + 1}-12-31`;
+
+  const breadcrumbLd = product
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: product.CategoryName ?? 'Products',
+            item: product.CategoryId
+              ? `${SITE_URL}/category/${toCategorySlug(product.CategoryName ?? '', product.CategoryId)}`
+              : SITE_URL,
+          },
+          { '@type': 'ListItem', position: 3, name: product.Name, item: canonicalUrl },
+        ],
+      }
+    : null;
 
   return (
     <HomeLayout>
       {product && selectedVariant && (
         <>
+          {/* sr-only H1 for crawlers — ProductDetailView renders the visible heading after hydration */}
+          <h1
+            style={{
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
+              margin: '-1px',
+              padding: 0,
+              overflow: 'hidden',
+              clip: 'rect(0,0,0,0)',
+              whiteSpace: 'nowrap',
+              border: 0,
+            }}
+          >
+            {product.Name}
+          </h1>
           <ProductSchema
             name={product.Name}
             description={rawDesc}
@@ -161,25 +210,14 @@ export default async function ProductPage({ params }: Props) {
             category={product.CategoryName ?? undefined}
             priceValidUntil={priceValidUntil}
           />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'BreadcrumbList',
-                itemListElement: [
-                  { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
-                  {
-                    '@type': 'ListItem',
-                    position: 2,
-                    name: product.CategoryName ?? 'Products',
-                    item: SITE_URL,
-                  },
-                  { '@type': 'ListItem', position: 3, name: product.Name, item: canonicalUrl },
-                ],
-              }),
-            }}
-          />
+          {breadcrumbLd && (
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify(breadcrumbLd).replace(/</g, '\\u003c'),
+              }}
+            />
+          )}
         </>
       )}
 
