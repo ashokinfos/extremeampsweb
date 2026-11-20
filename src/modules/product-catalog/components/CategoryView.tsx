@@ -22,6 +22,10 @@ import { useTheme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import CategoryIcon from '@mui/icons-material/Category';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
+import InputAdornment from '@mui/material/InputAdornment';
+import TextField from '@mui/material/TextField';
 
 import { DashboardContent } from '@/shared/layouts/home';
 import { ProductItem, ProductSort } from '@/modules/product-catalog/components';
@@ -143,6 +147,8 @@ export function CategoryView({ categoryName }: Props) {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState('featured');
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Reset to page 1 when navigating to a different category
@@ -169,6 +175,7 @@ export function CategoryView({ categoryName }: Props) {
     catalogService
       .getCatalog({
         CategoryIds: [categoryId],
+        Search: search || undefined,
         Page: page,
         PageSize: PAGE_SIZE,
         SortBy: sortBy,
@@ -182,7 +189,18 @@ export function CategoryView({ categoryName }: Props) {
         setTotalCount(0);
       })
       .finally(() => setLoading(false));
-  }, [categoryId, page, sortBy]);
+  }, [categoryId, page, search, sortBy]);
+
+  const submitSearch = () => {
+    setPage(1);
+    setSearch(searchInput.trim());
+  };
+
+  const clearSearch = () => {
+    setSearchInput('');
+    setPage(1);
+    setSearch('');
+  };
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -291,6 +309,31 @@ export function CategoryView({ categoryName }: Props) {
                 </Box>
               </Box>
 
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <TextField
+                size="small"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                onKeyDown={(event) => { if (event.key === 'Enter') submitSearch(); }}
+                placeholder={`Search ${categoryName}`}
+                aria-label={`Search products in ${categoryName}`}
+                sx={{ width: { xs: '100%', sm: 240 } }}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>,
+                  endAdornment: searchInput ? (
+                    <InputAdornment position="end">
+                      <IconButton size="small" onClick={clearSearch} aria-label="Clear category search"><ClearIcon fontSize="small" /></IconButton>
+                    </InputAdornment>
+                  ) : undefined,
+                }}
+              />
+              <IconButton
+                onClick={submitSearch}
+                aria-label="Search category products"
+                sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
+              >
+                <SearchIcon fontSize="small" />
+              </IconButton>
               <ProductSort
                 sortBy={sortBy}
                 onSort={(val) => { setPage(1); setSortBy(val); }}
@@ -301,6 +344,7 @@ export function CategoryView({ categoryName }: Props) {
                   { value: 'priceAsc', label: 'Price: Low-High' },
                 ]}
               />
+              </Box>
             </Box>
           </Box>
 
@@ -326,7 +370,7 @@ export function CategoryView({ categoryName }: Props) {
           ) : products.length === 0 ? (
             <Box sx={{ py: 10, textAlign: 'center' }}>
               <Typography variant="body1" color="text.secondary">
-                No products in this category yet.
+                {search ? `No products found for “${search}” in this category.` : 'No products in this category yet.'}
               </Typography>
             </Box>
           ) : (
@@ -355,7 +399,7 @@ export function CategoryView({ categoryName }: Props) {
               page={page}
               color="primary"
               onChange={(_, value) => setPage(value)}
-              sx={{ mt: 8, mx: 'auto' }}
+              sx={{ mt: 8, mx: 'auto', display: 'flex', justifyContent: 'center' }}
             />
           )}
         </Box>
