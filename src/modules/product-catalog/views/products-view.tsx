@@ -187,9 +187,7 @@ export default function ProductsView({ initialSearch = '' }: { initialSearch?: s
           Class D Amplifier Boards &amp; Audio Modules
         </Typography>
         <Typography component="p" variant="body1" color="text.secondary">
-          Extreme Amps manufactures high-efficiency Class D amplifier boards, 5.1 home theater kits,
-          DSP audio decoders, and OEM audio PCB assemblies in Vellore, Tamil Nadu, India. Shop direct
-          from the manufacturer — genuine products, competitive prices, fast shipping.
+          Extreme Amps manufactures high-efficiency Class D amplifier boards, 5.1 home theater kits, DSP audio decoders, and OEM audio PCB assemblies in Vellore, Tamil Nadu, India. Shop direct from the manufacturer — genuine products, competitive prices, fast shipping.
         </Typography>
       </Box>
     </DashboardContent>

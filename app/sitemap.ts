@@ -65,5 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/shipping-policy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
   ];
 
+  
+
   return [...staticUrls, ...categoryUrls, ...productUrls];
 }
