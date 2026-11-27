@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import NextLink from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import Box from '@mui/material/Box';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
@@ -138,6 +138,11 @@ function CategorySidebar({
 export function CategoryView({ categoryName }: Props) {
   const params = useParams<{ categorySlug: string }>();
   const categoryId = idFromCategorySlug(params?.categorySlug ?? '');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const initialPage = Number(searchParams.get('page'));
+  const previousCategoryId = useRef(categoryId);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -145,7 +150,9 @@ export function CategoryView({ categoryName }: Props) {
 
   const [products, setProducts] = useState<ICatalogVariant[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() =>
+    Number.isInteger(initialPage) && initialPage > 0 ? initialPage : 1
+  );
   const [sortBy, setSortBy] = useState('featured');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
@@ -153,8 +160,24 @@ export function CategoryView({ categoryName }: Props) {
 
   // Reset to page 1 when navigating to a different category
   useEffect(() => {
-    setPage(1);
+    if (previousCategoryId.current !== categoryId) setPage(1);
+    previousCategoryId.current = categoryId;
   }, [categoryId]);
+
+  useEffect(() => {
+    const queryPage = Number(searchParams.get('page'));
+    setPage(Number.isInteger(queryPage) && queryPage > 0 ? queryPage : 1);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(searchParams.toString());
+    if (page > 1) queryParams.set('page', String(page));
+    else queryParams.delete('page');
+    const query = queryParams.toString();
+    if (query !== searchParams.toString()) {
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    }
+  }, [page, pathname, router, searchParams]);
 
   const [categories, setCategories] = useState<ICatalogCategory[]>([]);
   const [catLoading, setCatLoading] = useState(true);

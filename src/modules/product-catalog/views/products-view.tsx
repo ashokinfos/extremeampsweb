@@ -1,6 +1,7 @@
 ﻿'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { DashboardContent } from '@/shared/layouts/home';
 import { useSearch } from '@/shared/contexts/SearchContext';
 
@@ -27,24 +28,48 @@ const defaultFilters: FiltersProps = {
 };
 
 export default function ProductsView({ initialSearch = '' }: { initialSearch?: string }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const initialPage = Number(searchParams.get('page'));
+  const { committed, clearSearch } = useSearch();
   const [sortBy, setSortBy] = useState('featured');
   const [products, setProducts] = useState<ICatalogVariant[]>([]);
   const [banners, setBanners] = useState<IBanner[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() =>
+    Number.isInteger(initialPage) && initialPage > 0 ? initialPage : 1
+  );
   const [openFilter, setOpenFilter] = useState(false);
   const [filters, setFilters] = useState<FiltersProps>(defaultFilters);
   const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]);
-
-  const { committed, clearSearch } = useSearch();
+  const previousCommitted = useRef(committed);
+  const previousInitialSearch = useRef(initialSearch);
 
   useEffect(() => {
-    setPage(1);
+    const queryPage = Number(searchParams.get('page'));
+    setPage(Number.isInteger(queryPage) && queryPage > 0 ? queryPage : 1);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (page > 1) params.set('page', String(page));
+    else params.delete('page');
+    const query = params.toString();
+    if (query !== searchParams.toString()) {
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    }
+  }, [page, pathname, router, searchParams]);
+
+  useEffect(() => {
+    if (previousCommitted.current !== committed) setPage(1);
+    previousCommitted.current = committed;
     setFilters((prev) => ({ ...prev, search: committed }));
   }, [committed]);
 
   useEffect(() => {
-    setPage(1);
+    if (previousInitialSearch.current !== initialSearch) setPage(1);
+    previousInitialSearch.current = initialSearch;
     setFilters((prev) => ({ ...prev, search: initialSearch }));
   }, [initialSearch]);
 
