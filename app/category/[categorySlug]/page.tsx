@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
 import { HomeLayout } from '@/shared/layouts/home';
 import { CategoryView } from '../../../src/modules/product-catalog/components/CategoryView';
@@ -141,7 +142,9 @@ export default async function CategoryPage({ params }: Props) {
         >
           {categoryName}
         </h1>
-        <CategoryView categoryName={categoryName} />
+        <Suspense fallback={null}>
+          <CategoryView categoryName={categoryName} />
+        </Suspense>
       </HomeLayout>
     </>
   );
