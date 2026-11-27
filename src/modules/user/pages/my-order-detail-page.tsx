@@ -28,6 +28,7 @@ import DialogContent from '@mui/material/DialogContent';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { myOrderService } from '../services/myOrderService';
+import { checkoutService } from '@/modules/checkout/services/checkoutService';
 
 import type { IMyOrderDetails } from '../types/orderTypes';
 
@@ -177,6 +178,8 @@ export default function MyOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [retryingPayment, setRetryingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
   const [confirmCancel, setConfirmCancel] = useState(false);
 
   const canCancelOrder = (status: string) =>
@@ -213,6 +216,25 @@ export default function MyOrderDetailPage() {
       await myOrderService.downloadInvoice(orderId, order.OrderInfo.OrderCode);
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleRepayment = async () => {
+    if (!orderId) return;
+    setRetryingPayment(true);
+    setPaymentError('');
+    try {
+      const result = await checkoutService.reInitiateCheckout({ OrderId: orderId });
+      if (!result.Status || !result.PaymentUrl) {
+        setPaymentError(result.Message || 'Unable to start payment. Please try again.');
+        return;
+      }
+      sessionStorage.setItem('pendingOrderId', result.MerchantOrderId);
+      window.location.href = result.PaymentUrl;
+    } catch {
+      setPaymentError('Unable to start payment. Please try again.');
+    } finally {
+      setRetryingPayment(false);
     }
   };
 
@@ -278,6 +300,17 @@ export default function MyOrderDetailPage() {
               onClick={handleDownloadInvoice}
             >
               Download Invoice
+            </LoadingButton>
+          )}
+          {OrderInfo.Status.toLowerCase() === 'payment_pending' && (
+            <LoadingButton
+              loading={retryingPayment}
+              startIcon={<Iconify icon="solar:restart-bold" />}
+              variant="contained"
+              size="small"
+              onClick={handleRepayment}
+            >
+              Repay
             </LoadingButton>
           )}
         </Stack>
@@ -412,17 +445,17 @@ export default function MyOrderDetailPage() {
                   <Typography variant="subtitle1">Shipping Address</Typography>
                 </Stack>
                 <Typography variant="body2" fontWeight={600}>
-                  {ShippingDetails.CustomerName}
+                  {ShippingDetails?.CustomerName}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {ShippingDetails.PhoneNumber}
+                  {ShippingDetails?.PhoneNumber}
                 </Typography>
                 <Typography variant="body2">
-                  {ShippingDetails.AddressLine1}
-                  {ShippingDetails.AddressLine2 ? `, ${ShippingDetails.AddressLine2}` : ''}
+                  {ShippingDetails?.AddressLine1}
+                  {ShippingDetails?.AddressLine2 ? `, ${ShippingDetails?.AddressLine2}` : ''}
                 </Typography>
                 <Typography variant="body2">
-                  {ShippingDetails.City}, {ShippingDetails.State} — {ShippingDetails.PinCode}
+                  {ShippingDetails?.City}, {ShippingDetails?.State} — {ShippingDetails?.PinCode}
                 </Typography>
               </Card>
 
@@ -433,6 +466,15 @@ export default function MyOrderDetailPage() {
                   <Typography variant="subtitle1">Payment</Typography>
                 </Stack>
                 <Stack spacing={0.75}>
+                  {OrderInfo.Status.toLowerCase() === 'payment_pending' && (
+                    <>
+                      <Alert severity="info" sx={{ mb: 1 }}>
+                        If you have already completed the payment, please allow up to 15 minutes
+                        for it to reflect in your order status.
+                      </Alert>
+                      {paymentError && <Alert severity="error">{paymentError}</Alert>}
+                    </>
+                  )}
                   <Stack direction="row" justifyContent="space-between">
                     <Typography variant="body2" color="text.secondary">
                       Method
