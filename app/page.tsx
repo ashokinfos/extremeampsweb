@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
 import { HomeLayout } from '@/shared/layouts/home';
 import ProductsView from '@/modules/product-catalog/views/products-view';
@@ -109,7 +110,9 @@ export default async function HomePage() {
         */}       
 
         {/* Client-side product grid — unchanged */}
-        <ProductsView />
+        <Suspense fallback={null}>
+          <ProductsView />
+        </Suspense>
         <HomeHero categories={categoryItems} />
       </HomeLayout>
     </>
